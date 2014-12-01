@@ -1,0 +1,26 @@
+Detekcija lica je prvi korak u sustavima za raspoznavanje lica s ciljem lokalizacije i ekstrakcije lica od pozadine. Ljudsko lice je dinamičan objekt s visokim stupnjem varijabilnosti na slikama, što čini detekciju lica teškim problemom u oblasti računalnog vida.
+
+Sustavi za detekciju lica se mogu podijeliti na sustave temeljene na značajkama (engl. feature-based) i sustave temeljene na slici (engl. image-based) [2]. Oni koji su temeljeni na značajkama mogu vršiti analizu niskog nivoa koja se oslanja na rubove, sive nivoe ili boje, mogu vršiti analizu značajki ili kreirati modele aktivnih oblika (engl. active shape models). Sustavi temeljeni na slici se dijele na tri glavne skupine: neuronske mreže, metode linearnih potprostora, te razni statistički pristupi. U radu koji će poslužiti kao osnova za izradu ovog projekta [3] za detekciju lica se vrši jednostavna analiza niskog nivoa temeljena na segmentaciji boja, slike i višeslojnom filtriranju tako dobivenih regija koristeći različite vrijednosti pragova sličnosti s prosječnim licem.
+
+Sustav za robusnu detekciju lica u realnom vremenu opisan u [1] može poslužiti kao primjer sustava za detekciju lica koji vrši analizu značajki. Temelji se na prikazu slike koji su nazvali “integralna slika”, jednostavnom klasifikatoru izgrađenom koristeći AdaBoost algoritam učenja da izabere najbitnije značajke iz jako velikog skupa potencijalnih značajki, te na kaskadnom kombiniranju klasifikatora koje omogućuju da pozadinske regije budu brzo odbačene i da što je moguće veći dio računanja koncentrira na regije koje imaju veću vjerojatnost da predstavljaju lice.
+
+Modeli aktivnih oblika predstavljaju značajke višeg nivoa od prethodno spomenutih modela. Kada se inicijalizira u blizini značajke model aktivnog oblika će kroz interakciju s lokalnim značajkama poput rubova i osvjetljenosti postepeno zauzeti oblik značajke višeg nivoa. Na taj način se mogu koristiti ne samo za detekciju lica nego i za prepoznavanje lica kroz označavanje bitnih regija poput očiju, obrva, usta i nosa [4].
+
+Pri detekciji lica koristeći neuronske mreže u [5] korišteno je više neuronskih mreža koje su obavljale različite zadatke. Prva neuronska mreža je vršila procjenu poze potencijalnih regija koje predstavljaju lice. Nakon nje se vršilo pretprocesiranje s ciljem smanjivanja varijacija uzrokovanih osvjetljenjem i razlikama vezanim za kamere. Nakon toga za svaku pozu je korišteno nekoliko neuronskih mreža koje su učile različite stvari iz podataka za treniranje i davale različite rezultate. U posljednjem sloju njihovi izlazi su kombinirani koristeći jednostavnu heuristiku s ciljem povećanja točnih detekcija. Pristup zasnovan na dubokim konvolucijskim neuronskim mrežama [6] na efikasan način izvlači značajke tokom učenja i na FDDB bazi trenutno ostvaruje najbolje rezultate. 
+
+Metode linearnih potprostora su metode poput PCA, ICA, LDA i FA. Za ovaj projekt ovakve metode će se koristiti u kontekstu prepoznavanja lica, pa u kontekstu detekcije su spomenuti tek kao jedna od mogućnosti.
+
+
+Kao primjer statističkog pristupa u detekciji lica može poslužiti FloatBoost učenje bazirano na AdaBoost algoritmu [7]. FloatBoost nakon svake iteracije AdaBoost učenja koristi povratni mehanizam za direktnu minimizaciju pogreške. Postiže manju pogrešku učenja i generalizacije koristeći manji broj slabih klasifikatora od AdaBoost algoritma.  
+
+
+
+
+[1] Viola, Paul, and Michael J. Jones. "Robust real-time face detection." International journal of computer vision 57.2 (2004): 137-154.
+[2] Hjelmås, Erik, and Boon Kee Low. "Face detection: A survey." Computer vision and image understanding 83.3 (2001): 236-274.
+[3] Chandrappa, D.N.; Ravishankar, M., "Automatic face recognition in a crowded scene using multi layered clutter filtering and independent component analysis," Intelligent Systems Design and Applications (ISDA), 2012 12th International Conference on , vol., no., pp.552,556, 27-29 Nov. 2012
+[4] Prabhu, Utsav, and Keshav Seshadri. "Facial Recognition Using Active Shape Models, Local Patches and Support Vector Machines."
+[5] Rowley, Henry A., Shumeet Baluja, and Takeo Kanade. "Neural network-based face detection." Pattern Analysis and Machine Intelligence, IEEE Transactions on 20.1 (1998): 23-38.
+[6] Cha Zhang; Zhengyou Zhang, "Improving multiview face detection with multi-task deep convolutional neural networks," Applications of Computer Vision (WACV), 2014 IEEE Winter Conference on , vol., no., pp.1036,1041, 24-26 March 2014
+doi: 10.1109/WACV.2014.6835990
+[7] Li, S.Z.; Zhang, Z., "FloatBoost learning and statistical face detection," Pattern Analysis and Machine Intelligence, IEEE Transactions on , vol.26, no.9, pp.1112,1123, Sept. 2004

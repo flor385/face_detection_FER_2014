@@ -1,0 +1,22 @@
+Detekcija lica
+
+Prvi dio zadatka prepoznavanja lica u grupnoj sceni je sama detekcija lica koje treba prepoznati. Ovaj problem je dosta istražen u podruèju raèunalnog vida i postoje razlièiti naèini kako dobiti zadovoljavajuæe rezultate poput prepoznavanja lica po boji ili po kretanju (ili koristeæi oboje). U ovom radu se odluèujemo koristiti detekciju lica temeljenu na boji što æe se bolje opisati.
+Postupak detekcije lica temeljene na boji kojeg koriste radovi poput [1] i [2] je sljedeæi: detektirati podruèja na slici koja odgovaraju koži i pronaðena podruèja klasificirati kao lica ili ne-lica. 
+
+Kako bi se prvi dio postupka obavio efikasno zakljuèilo se da je potrebno sliku iz RGB prostora konvertirati u YCrCb ili YIQ prostor i onda izgraditi binarnu sliku (masku) u kojoj je svaki piksel oznaèen ako komponente piksela zadovoljavaju uvjet pripadanja koži. Sam uvjet pripadanja piksela podruèju kože varira kroz radove: u [3] koji za obradu koristi YCrCb prikaz uvjet glasi 90<Y<180, 90<Cr<130, 80<Cb<150, dok je u radu [1] utvrðena i opisana zavisnost izmeðu Cr, Cb i Y komponenti te se prvo izvršava nelinearna transformacija Cr i Cb komponenti i nakon toga ispituje uvjet pripadanja. Ove opisane metode su empirijske i moguæe je da svaki istraživaèki tim definira svoje u sklopu svog rada. U radu [1] se prije samog stvaranja binarne slike poèetna slika još provlaèi kroz fazu pretprocesiranja u kojoj se gleda umanjiti utjecaj izvora svijetlosti na boje u slici. Dobivena binarna maska se  još dodatno može transformirati operacijama otvaranja, filtriranja, dilatacije, erozije i zatvaranja kako bi se postigle kompaktnije maske koje predstavljaju moguæa podruèja lica. Dobivena podruèja se iz slike izvlaèe postupcima segmentacije.
+
+Slika 1- Odreðivanje podruèja na slici koja pripadaju koži uz normalni i smanjeni utjecaj svijetlosti (skin det.PNG)
+
+U drugom se dijelu postupka podruèja slike dobivena segmentacijom moraju klasificirati kao lica odnosno ne-lica zbog toga što se segmentacijom izdvajaju dijelovi slike koji odgovaraju koži što èesto ukljuèuje i ostale dijelove tijela poput ruku. U radu [1] se tom problemu pristupa tako da se najprije odrede podruèja u kandidatima za lice koji odgovaraju oèima i ustima te se lice prihvaæa ako je ocjena pronaðenih kandidata bolja od neke graniène vrijednosti. 
+
+Slika 2- Primjer detekcije lica u radu [1] (detekcija pr1.PNG)
+
+Rad [2] ovom problemu pristupa na malo drugaèiji naèin: na samom poèetku postoji skup lica koja èine skup za uèenje, od tih se lica stvara slika prosjeènog lica i za svakog kandidata lica se raèuna korelacija kandidata sa prosjeènim licem. Ako je ta korelacija niska kandidat se odbacuje, inaèe ako je podruèje kandidata dovoljno veliko on se prihvaæa kao podruèje lica. Test korelacije je slièan naèinu na koji se maximal rejection classifier (MRC) koristi za detekciju lica opisanog u radu [4]. Prihvaæanje kandidata na temelju velièine podruèja se obavlja koristeæi prilagoðavajuæu granicu prihvaæanja kako bi se omoguæilo prihvaæanje malih lica na slici, a istodobno odbacivalo manja podruèja za koje je prolazak testa korelacije moguæ (dijelovi tijela poput ruku).
+
+Slika 3- Primjer detekcije lica u radu [2] (detekcija pr2.PNG)
+
+Reference
+[1]	Face detection in color images; Rein-Lien Hsu, Mohamed Abdel-Motaleb, Anil K. Jain
+[2]	Automatic Face Recognition in a crowded scene using Multi layered clutter filtering and Independent Component Analysis; Chandrappa D N, M Ravishankar
+[3]	An Automatic Face Detection and Gender Classification from Color Images using Support Vector Machine; Md. Hafizur Rahman, Suman Chowdhury, Md. Abul Bashar
+[4]	Pattern Detection Using a Maximal Rejection Classifier; Michael Elad, Yacov Hel-Or, Renato Keshet
