@@ -69,7 +69,7 @@
 
 \chapter{Pregled postojećih rješenja}
 
-\section{Detekcija lica}
+\section{Detekcija lica - Toni}
 
 Detekcija lica je prvi korak u sustavima za raspoznavanje lica s ciljem lokalizacije i ekstrakcije lica od pozadine. Ljudsko lice je dinamičan objekt s visokim stupnjem varijabilnosti na slikama, što čini detekciju lica teškim problemom u oblasti računalnog vida.
 
@@ -83,7 +83,39 @@ Pri detekciji lica koristeći neuronske mreže u \cite{Rowley98neuralnetwork-bas
 
 Metode linearnih potprostora su metode poput PCA, ICA, LDA i FA. Za ovaj projekt ovakve metode će se koristiti u kontekstu prepoznavanja lica, pa u kontekstu detekcije su spomenuti tek kao jedna od mogućnosti.
 
-Kao primjer statističkog pristupa u detekciji lica može poslužiti FloatBoost učenje bazirano na AdaBoost algoritmu \cite{Li04floatboostlearning}. FloatBoost nakon svake iteracije AdaBoost učenja koristi povratni mehanizam za direktnu minimizaciju pogreške. Postiže manju pogrešku učenja i generalizacije koristeći manji broj slabih klasifikatora od AdaBoost algoritma.  
+Kao primjer statističkog pristupa u detekciji lica može poslužiti FloatBoost učenje bazirano na AdaBoost algoritmu \cite{Li04floatboostlearning}. FloatBoost nakon svake iteracije AdaBoost učenja koristi povratni mehanizam za direktnu minimizaciju pogreške. Postiže manju pogrešku učenja i generalizacije koristeći manji broj slabih klasifikatora od AdaBoost algoritma.
+
+\section{Detekcija lica - Edi}
+
+Prvi dio zadatka prepoznavanja lica u grupnoj sceni je sama detekcija lica koje treba prepoznati. Ovaj problem je dosta istražen u području računalnog vida i postoje različiti načini kako dobiti zadovoljavajuće rezultate poput prepoznavanja lica po boji ili po kretanju (ili koristeći oboje). U ovom radu se odlučujemo koristiti detekciju lica temeljenu na boji što će se bolje opisati.
+Postupak detekcije lica temeljene na boji kojeg koriste radovi poput \cite{Senior:2002:FDC:513073.513082} i \cite{conf/isda/ChandrappaR12} je sljedeći: detektirati područja na slici koja odgovaraju koži i pronađena područja klasificirati kao lica ili ne-lica. 
+
+Kako bi se prvi dio postupka obavio efikasno zaključilo se da je potrebno sliku iz RGB prostora konvertirati u YCrCb ili YIQ prostor i onda izgraditi binarnu sliku (masku) u kojoj je svaki piksel označen ako komponente piksela zadovoljavaju uvjet pripadanja koži. Sam uvjet pripadanja piksela području kože varira kroz radove: u \cite{rahman_face_det_gender_svm} koji za obradu koristi YCrCb prikaz uvjet glasi 90<Y<180, 90<Cr<130, 80<Cb<150, dok je u radu \cite{Senior:2002:FDC:513073.513082} utvrđena i opisana zavisnost između Cr, Cb i Y komponenti te se prvo izvršava nelinearna transformacija Cr i Cb komponenti i nakon toga ispituje uvjet pripadanja. Ove opisane metode su empirijske i moguće je da svaki istraživački tim definira svoje u sklopu svog rada. U radu \cite{Senior:2002:FDC:513073.513082} se prije samog stvaranja binarne slike početna slika još provlači kroz fazu pretprocesiranja u kojoj se gleda umanjiti utjecaj izvora svijetlosti na boje u slici. Dobivena binarna maska se  još dodatno može transformirati operacijama otvaranja, filtriranja, dilatacije, erozije i zatvaranja kako bi se postigle kompaktnije maske koje predstavljaju moguća područja lica. Dobivena područja se iz slike izvlače postupcima segmentacije.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/skin_det.jpg}
+\caption{Određivanje područja na slici koja pripadaju koži uz normalni i smanjeni utjecaj svijetlosti.}
+\label{fig:skin_det}
+\end{figure}
+
+U drugom se dijelu postupka područja slike dobivena segmentacijom moraju klasificirati kao lica odnosno ne-lica zbog toga što se segmentacijom izdvajaju dijelovi slike koji odgovaraju koži što često uključuje i ostale dijelove tijela poput ruku. U radu \cite{Senior:2002:FDC:513073.513082} se tom problemu pristupa tako da se najprije odrede područja u kandidatima za lice koji odgovaraju očima i ustima te se lice prihvaća ako je ocjena pronađenih kandidata bolja od neke granične vrijednosti. 
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/detekcija_pr1.jpg}
+\caption{Primjer detekcije lica u radu \cite{Senior:2002:FDC:513073.513082}.}
+\label{fig:detekcija_pr1}
+\end{figure}
+
+Rad \cite{conf/isda/ChandrappaR12} ovom problemu pristupa na malo drugačiji način: na samom početku postoji skup lica koja čine skup za učenje, od tih se lica stvara slika prosječnog lica i za svakog kandidata lica se računa korelacija kandidata sa prosječnim licem. Ako je ta korelacija niska kandidat se odbacuje, inače ako je područje kandidata dovoljno veliko on se prihvaća kao područje lica. Test korelacije je sličan načinu na koji se maximal rejection classifier (MRC) koristi za detekciju lica opisanog u radu \cite{Elad00patterndetection}. Prihvaćanje kandidata na temelju veličine područja se obavlja koristeći prilagođavajuću granicu prihvaćanja kako bi se omogućilo prihvaćanje malih lica na slici, a istodobno odbacivalo manja područja za koje je prolazak testa korelacije moguć (dijelovi tijela poput ruku).
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/detekcija_pr2.jpg}
+\caption{Primjer detekcije lica u radu \cite{conf/isda/ChandrappaR12}.}
+\label{fig:detekcija_pr2}
+\end{figure}
 
 \chapter{Predložena implementacija}
 
