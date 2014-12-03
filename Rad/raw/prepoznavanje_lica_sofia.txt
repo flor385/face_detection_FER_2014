@@ -1,0 +1,34 @@
+Prepoznavanje lica
+
+Nakon što su lica detektirana, izrezana i skalirana lica se prepoznaju korištenjem kombinacije PCA i ICA algoritama. Iako se PCA algoritam može koristiti samostalno za prepoznavanje lica u ovom ćemo ga radu koristiti kao korak predprocesiranja slike. Uz pomoć PCA smanjujemo dimenzionalnost vektora značajki. Ovaj pristup pridonosi kvaliteti rješenja iz više razloga, značajke sa malom varijancom su vjerojatno posljedica šuma i nepoželjne su te se smanjuje složenost modela [x]. Nakon toga, lica se prepoznaju ICA metodom. Postoje dvije arhitekture te više algoritama ICA metode koji se mogu primjeniti u ovome slučaju.
+
+ICA
+
+ICA (eng. Independent Component Analysis) metoda slična je PCA (eng. Principal Component Analysis) te se može smatrati njenom generalizacijom. Razlika između njih leži u tome što PCA daje nekorelirane bazične vektore, a ICA statistički neovisne vektore. ICA rješava BSS (eng. blind source separation) problem, pokušava prikazati signal kao linearnu kombinaciju nezavisnih signala. 
+Ako je s vektor nepoznatih nelinearnih signala, x opaženi signal, a A matrica transformacije, dobivamo sljedeću jednakost koju pokušavamo riješiti:
+x = A*s
+Pretpostavka je da A nema inverz. ICA algoritmi pokušavaju naći A ili W iz sljedeće jednadžbe:
+u = W*x = W*A*s
+Moguće je da ne postoji matrica W koja u potpunosti zadovoljava ovu jednadžbu. W se aproksimira iterativnim postupcima koji maksimiziraju neovisnost bazičnih vektora. Ona se ne maksimizira izravno već se odabiru funkcije koje imaju maksimum kada su vektori nezavisni.
+ICA algoritam InfoMax maksimizira entropiju
+
+postupkom gradijentnog spusta, dok FastICA maksimizira
+
+gdje je G nekvadratna funkcija, v slučajna varijabla, a c neka pozitivna konstanta. Svi ICA algoritmi konvergiraju u isto rješenje te ne postoje velike razlike u njihovim performansama[x].
+
+
+Arhitektura I
+Postoje dva načina za primjenu ICA-e na problemima prepoznavanja lica. Kod prvog načina ulazne slike lica X promatraju se kao linearna kombinacija nezavisnih slika S. Primjenom InfoMax algoritma dobivamo U, aproksimaciju nezavisnih bazičnih slika. Sljedeća slika prikazuje opisanu arhitekturu. 
+<slika Arh_1.png; opis: (Arhitektura I)>
+Ova arhitektura daje lokalizirane značajke te je bolja za prepoznavanje pokreta lica [x].
+
+Arhitektura II
+Za razliku od prve, druga arhitektura daje globalne značajke te postiže bolje rezultate kod prepoznavanja lica.
+Cilj ovog načina ICA jest pronalazak nezavisnih koeficijenata za ulazne podatke. Matrica X predstavlja slikovne elemente (eng. pixels) slike, S nezavisne koeficijente ulazne slike, dok je A matrica bazičnih slika.
+<slika Arh_2.png; opis: (Arhitektura II)>
+
+Na slici <br slike znacajke_alg.png > možemo vidjeti kakve se značajke dobiju prikazanim arhitekturama. Gornji red prikazuje PCA značajke, srednji ICA značajke uz arhitekturu I, a donji red ICA uz arhitekturu II. Jasno je vidljivo da su značajke ICA II arhitekture globalne. U radu [x] testirani su ICA i PCA algoritmi različitih arhitektura. Vidljivo je da ICA arhitektura II daleko najuspješnija u prepoznavanju lica, pa ćemo je koristiti i u ovom radu. ICA algoritam FastICA postiže malo bolje rezulate od InfoMax-a te njega biramo za ovaj rad.
+
+<slika znacajke_alg.png; opis: (Značajke dobivene PCA, ICA arhitektura I i ICA arhitektura II)>
+
+[x] Bruce A. Draper, Kyunigim Baek, Marian Stewart Bartlett, J. Ross Bevridge, Recognizing faces with PCA and ICA, Academic Press, Computer Vision and Image Understanding 91 (2003) 115–137
