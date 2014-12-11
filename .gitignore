@@ -2,7 +2,7 @@
 *.pyc
 
 #   Mac metadata
-*.DS_Store
+.DS_Store
 
 #   ignore the FDDB database
 **/FDDB/*
