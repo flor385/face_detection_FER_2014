@@ -1,1 +1,8 @@
+#   Python caches
 *.pyc
+
+#   Mac metadata
+*.DS_Store
+
+#   ignore the FDDB database
+**/FDDB/*
