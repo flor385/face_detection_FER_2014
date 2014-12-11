@@ -140,7 +140,14 @@ Raspoznavanje lica je također provedeno nad slikama Bostonskog maratona, a time
 \chapter{Predložena implementacija}
 \label{sec:predlozeno}
 
-U radu koji će poslužiti kao osnova za izradu ovog projekta \cite{conf/isda/ChandrappaR12} za detekciju lica se vrši jednostavna analiza niskog nivoa temeljena na segmentaciji boja, slike i višeslojnom filtriranju tako dobivenih regija koristeći različite vrijednosti pragova sličnosti s prosječnim licem.
+U radu koji će poslužiti kao osnova za izradu ovog projekta \cite{conf/isda/ChandrappaR12} za detekciju lica se vrši jednostavna analiza niskog nivoa temeljena na segmentaciji boja, slike i višeslojnom filtriranju tako dobivenih regija koristeći različite vrijednosti pragova sličnosti s prosječnim licem. Klasifikacija lica temelji se na PCA i LCA algoritmima opisanim u nastavku. Dijagram sustava prikazan je na slici \ref{fig:diagram}
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/Diagram.pdf}
+\caption{Dijagram sustava, protok podataka.}
+\label{fig:diagram}
+\end{figure}
 
 \section{Detekcija lica}
 \label{sec:predlozeno_detekcija}
@@ -209,6 +216,71 @@ Na slici \ref{fig:prepoznavanje_znacajke} možemo vidjeti kakve se značajke dob
 \caption{Značajke dobivene PCA, ICA arhitektura I i ICA arhitektura II}
 \label{fig:prepoznavanje_znacajke}
 \end{figure}
+
+\section{Korištene baze}
+
+Zadatak projekta je detekcija i prepoznavanje lica u proizvoljnim scenama. Implementaciju sustava potrebno
+je testirati na standardiziranoj bazi podataka kako bi se rezultati mogli usporediti sa
+drugim implementacijama.
+
+U trenutku pisanja nismo pronašli bazu koja bi se mogla koristiti za oba koraka algoritma (detekciju i
+prepoznavanje). Takva baza morala bi sadržavati slike proizvoljnih scena u kojima su lica označena
+lokacijski (položaj lica na slici) i labelirana (identifikator osobe svakog označenog lica). Stoga
+predlažemo evaluaciju cjelokupnog algoritma u dva koraka. Prvo evaluiramo detekciju lica na prikladnoj
+bazi, a potom na drugoj bazi evaluiramo algoritam prepoznavanja. Iako ovaj pristup nije idealan, omogućava
+evaluaciju na standardnim bazama i usporedbu sa drugim sustavima.
+
+\subsubsection{Detekcija lica}
+
+Postoje brojne baze u kojima je lice prikazano frontalno ili pod nekoliko različitih
+kutova \footnote{http://robotics.csie.ncku.edu.tw/Databases/FaceDetect\_PoseEstimate.htm \\
+http://www.face-rec.org/databases/}. Većina tih baza sadrži vrlo strukturirane fotografije. Lice najčešće
+zauzima veliki dio slike, centralno je pozicionirano i prikazano u cjelokupnosti. U tom smislu one
+nisu prikladnu za evaluaciju sustava za detekciju lica u proizvoljnim scenama.
+
+Baza podataka
+FDDB \footnote{http://vis-www.cs.umass.edu/fddb/} jedna je od rijetkih koje sadrže slike uistinu
+prozvoljnih scena, s označenim područjima koja prikazuju lica. Sadrži 5171 lica označenih
+unutar 2845 fotografije. Često se koristi te postoje
+dobro dokumentirani rezultati za velik broj sustava za detekciju, opisano u 
+\cite{fddbTech}. Stoga smatramo da je baza prikladna za evaluaciju našeg sustava detekcije.
+
+\subsubsection{Prepoznavanje}
+
+Mnoge baze prikladne su za evaluaciju sustava prepoznavanja lica. Za takve baze bitno je da
+sadrže slike isključivo lica, kako bi se smanjila količina šuma u algoritmu prepoznavanja. Naravno,
+svaka slika mora biti označena jedinstvenim identifikatorom prikazane osobe. Kako bi sustav za
+detekciju bio što primjenjiviji poželjno je da su lica prikazana iz različitih kutova u različitim
+uvjetima osvjetljenja.
+
+Od mnogih raspoloživih baza predlažemo evaluaciju na \textit{Yale Extended Face Database B}.
+Radi se o bazi koja sadrži 16128 fotografija lica 28 osoba u 9 različitih poza i 64 uvjeta
+osvjetljenja. Prvi puta je predložena u radu \cite{GeBeKr01}.
+
+\section{Platforma programske implementacije}
+
+Za implementaciju sustava predlažemo korištenje programskog jezika Python u kombinaciji
+sa sljedećim potpornim knjižnicama.
+
+\subsubsection{NumPy}
+
+NumPy\footnote{http://www.numpy.org} je knjižnica za numerički izračun.
+Sučelje (API) knjižnice dostupno je u jeziku
+Python, dok je implementacija pisana u jeziku C++ zbog brzine izvođenja.
+U našem sustavu NumPy će se koristiti za memorijske strukture pohrane
+slika te sve numeričke obrade.
+
+\subsubsection{OpenCV}
+
+OpenCV\footnote{http://opencv.org} \engl{Open Computer Vision} knjižnica
+je za obradu digitalnih slika u kontektstu računalnog vida. Sučelje za
+jezik Python je dostupno. Koristimo ju
+za predprocesiranje i segmentaciju slike.
+
+\subsubsection{scikit-learn}
+
+Scikit-learn\footnote{http://scikit-learn.org} je potporna knjižnica za
+sustave strojnog učenja. Koristimo ju za implementaciju PCA i LCA algoritama.
 
 \chapter{Rezultati}
 
