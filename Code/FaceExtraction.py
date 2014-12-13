@@ -105,7 +105,7 @@ def generate_faces(image_path, information_path, extraction_path):
     current_image = ""
 
     for image_information_file in image_information:
-        current_file = open(information_path + "//" + image_information_file)
+        current_file = open(information_path + os.sep + image_information_file)
         lines = current_file.readlines()
         current_file.close()
         flag = "path_line"
@@ -114,7 +114,7 @@ def generate_faces(image_path, information_path, extraction_path):
             line = line.strip()
             if flag == "path_line":
                 flag = "number_line"
-                current_image = image_path + "//" + line + ".jpg"
+                current_image = image_path + os.sep + line + ".jpg"
                 continue
             if flag == "number_line":
                 flag = "ellipse_line"
@@ -125,7 +125,7 @@ def generate_faces(image_path, information_path, extraction_path):
                 #koristi samo slike koje su dovoljno velike pa ih resizeaj
                 if len(face_image) >= 32 and len(face_image[0]) >= 32:
                     face_image = cv2.resize(face_image, (IMAGE_SIZE,IMAGE_SIZE))
-                    cv2.imwrite(extraction_path + "//face" + str(current_face) + ".jpg", face_image)
+                    cv2.imwrite(extraction_path + os.sep + "face" + str(current_face) + ".jpg", face_image)
                 current_face += 1
                 repeat -= 1
                 if repeat == 0:
@@ -139,7 +139,7 @@ def generate_average_face(faces_path, average_face_path):
 
     number_of_faces = len(face_images)
     for face_image in face_images:
-        face = cv2.imread(faces_path + "//" + face_image, 1)
+        face = cv2.imread(faces_path + os.sep + face_image, 1)
         for row in range(0, len(face)):
             for col in range(0, len(face[0])):
                 average_face[row][col][0] += float(face[row][col][0]) / float(number_of_faces)
@@ -152,7 +152,7 @@ def generate_average_face(faces_path, average_face_path):
             average_face[row][col][1] = int(average_face[row][col][1])
             average_face[row][col][2] = int(average_face[row][col][2])
 
-    cv2.imwrite(average_face_path + "//" + "average_face.jpg", numpy.asarray(average_face))
-    cv2.imwrite(average_face_path + "//" + "average_face_YIQ.jpg", convert_RGB_to_YIQ(numpy.asarray(average_face)))
+    cv2.imwrite(average_face_path + os.sep + "average_face.jpg", numpy.asarray(average_face))
+    cv2.imwrite(average_face_path + os.sep + "average_face_YIQ.jpg", convert_RGB_to_YIQ(numpy.asarray(average_face)))
 
 

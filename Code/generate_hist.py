@@ -1,9 +1,10 @@
 import numpy
 import cv2
 import matplotlib.pyplot as plt
+import os
 
 #ucitaj sliku
-YIQ_average = cv2.imread('AverageFace//average_face_YIQ.jpg', 1)
+YIQ_average = cv2.imread(os.path.join('AverageFace', 'average_face_YIQ.jpg'), 1)
 
 array_Y = []
 array_I = []
@@ -28,5 +29,3 @@ plt.xlim(min(bin_edges), max(bin_edges))
 plt.show()
 
 print hist
-
-
