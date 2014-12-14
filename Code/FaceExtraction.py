@@ -106,7 +106,7 @@ def convert_RGB_to_YIQ(img):
             YIQ_image[row][col][1] = int(YIQ_current[1][0])
             YIQ_image[row][col][2] = int(YIQ_current[2][0])
 
-            if RGB_current[0][0] == 0 and RGB_current[0][0] == 0 and RGB_current[0][0] == 0:
+            if RGB_current[0][0] == 0 and RGB_current[1][0] == 0 and RGB_current[2][0] == 0:
                 YIQ_image[row][col][0] = 255
                 YIQ_image[row][col][1] = 255
                 YIQ_image[row][col][2] = 255
