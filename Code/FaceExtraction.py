@@ -2,11 +2,27 @@ import numpy
 import matplotlib
 import cv2
 import math
-import os
 from os import listdir
 from os.path import isfile, join
+import os
 
+#format slike nakon obrade je 32x32
 IMAGE_SIZE = 32
+
+#sve slike su u FDDB folderu
+image_path = "FDDB"
+
+#informacije o slikama su u FDDB folderu
+information_path = "FDDB"
+
+#folder sa slikama za treniranje je TrainingFaces
+training_path = "FDDB" + os.sep + "TrainingFaces"
+
+#folder sa prosjecnom slikom je AverageFace
+average_path = "FDDB" + os.sep + "AverageFace"
+
+#popis .txt fileova koji se koriste za generiranje slika lica za treniranje
+training_files = ["FDDB-fold-01-ellipseList.txt"]
 
 #pomocna metoda koja validira poziciju piksela
 def legitimize(number):
@@ -14,6 +30,7 @@ def legitimize(number):
         number = 0;
     return int(number)
 
+#metoda koja provjerava da li je neka tocka unutar elipse
 def check_if_in_ellipse(point_x, point_y, major_axis, minor_axis, angle, center_x, center_y):
     cosa=math.cos(angle)
     sina=math.sin(angle)
@@ -99,13 +116,12 @@ def convert_RGB_to_YIQ(img):
 #metoda koja iz danih podataka nalazi sve slike, ucitava ih te sprema nadena lica
 #pri citanju podataka ce se citati sve datoteke u pathu, tako da se treba staviti samo one koje se zeli koristiti
 #koriste se samo .txt datoteke sa kompletnim anotacijama za elipse, one bez toga nece proci
-def generate_faces(image_path, information_path, extraction_path):
+def generate_faces():
     current_face = 1
 
-    image_information = [ f for f in listdir(information_path) if isfile(join(information_path,f)) ]
     current_image = ""
 
-    for image_information_file in image_information:
+    for image_information_file in training_files:
         current_file = open(information_path + os.sep + image_information_file)
         lines = current_file.readlines()
         current_file.close()
@@ -126,21 +142,21 @@ def generate_faces(image_path, information_path, extraction_path):
                 #koristi samo slike koje su dovoljno velike pa ih resizeaj
                 if len(face_image) >= 32 and len(face_image[0]) >= 32:
                     face_image = cv2.resize(face_image, (IMAGE_SIZE,IMAGE_SIZE))
-                    cv2.imwrite(extraction_path + os.sep + "face" + str(current_face) + ".jpg", face_image)
+                    cv2.imwrite(training_path + os.sep + "face" + str(current_face) + ".jpg", face_image)
                 current_face += 1
                 repeat -= 1
                 if repeat == 0:
                     flag = "path_line"
 
 #metoda koja generira prosjecno lice iz danih lica
-def generate_average_face(faces_path, average_face_path):
-    face_images = [ f for f in listdir(faces_path) if isfile(join(faces_path,f)) ]
+def generate_average_face():
+    face_images = [ f for f in listdir(training_path) if isfile(join(training_path,f)) ]
 
     average_face= [[[0 for col in range(3)]for row in range(IMAGE_SIZE)] for x in range(IMAGE_SIZE)]
 
     number_of_faces = len(face_images)
     for face_image in face_images:
-        face = cv2.imread(faces_path + os.sep + face_image, 1)
+        face = cv2.imread(training_path + os.sep + face_image, 1)
         for row in range(0, len(face)):
             for col in range(0, len(face[0])):
                 average_face[row][col][0] += float(face[row][col][0]) / float(number_of_faces)
@@ -153,7 +169,12 @@ def generate_average_face(faces_path, average_face_path):
             average_face[row][col][1] = int(average_face[row][col][1])
             average_face[row][col][2] = int(average_face[row][col][2])
 
-    cv2.imwrite(average_face_path + os.sep + "average_face.jpg", numpy.asarray(average_face))
-    cv2.imwrite(average_face_path + os.sep + "average_face_YIQ.jpg", convert_RGB_to_YIQ(numpy.asarray(average_face)))
+    cv2.imwrite(average_path + os.sep + "average_face.jpg", numpy.asarray(average_face))
+    cv2.imwrite(average_path + os.sep + "average_face_YIQ.jpg", convert_RGB_to_YIQ(numpy.asarray(average_face)))
+
+#generira sva lica
+def generate_all_faces():
+    generate_faces()
+    generate_average_face()
 
 
