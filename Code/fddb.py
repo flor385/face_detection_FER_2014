@@ -55,8 +55,11 @@ def image_elipses(fold):
         lines = [l.strip() for l in f if len(l.strip()) > 0]
 
         #   parse lines
+        #   lines are split into groups, per file
         line_iterator = iter(lines)
         while True:
+
+            #   image name (no extension) is the first line in group
             img_name = next(line_iterator, None)
             if img_name is None:
                 break
@@ -64,7 +67,10 @@ def image_elipses(fold):
             img_path = os.path.join(__PATH_ROOT, img_name + ".jpg")
             r_val[img_path] = []
 
+            #   second line is the number of faces in the photo
             face_count = int(line_iterator.next())
+
+            #   following are elipses (1 per line) for all faces
             for _ in range(face_count):
                 elipsis_info = re.split("\\s+", line_iterator.next())
                 elipsis_info = elipsis_info[:-1]
