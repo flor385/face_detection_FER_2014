@@ -1,7 +1,7 @@
 """
 A module for FDDB database handling.
 Provides functions for loading of
-images and elipse information.
+images file names and elipse information.
 """
 import os
 import logging
@@ -78,6 +78,12 @@ def image_elipses(fold):
                 r_val[img_path].append(elipsis)
 
     return r_val
+
+
+def face_mask(file_path, elipse_list, face_ind=None):
+    """
+    """
+    pass
 
 
 def main():
