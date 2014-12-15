@@ -12,7 +12,7 @@ threshold_image = numpy.zeros((len(YIQ_image), len(YIQ_image[0]), 3), numpy.uint
 for row in range(0, len(YIQ_image)):
     for col in range(0, len(YIQ_image[0])):
         #Pogadao sam threshold vrijednosti pomocu histograma generiranog sa generate_hist.py
-        if YIQ_image[row][col][1] > 225 and YIQ_image[row][col][1] < 245 and YIQ_image[row][col][2] < 15 and YIQ_image[row][col][2] > 2:
+        if YIQ_image[row][col][1] > 225 and YIQ_image[row][col][1] < 250 and YIQ_image[row][col][2] < 15 and YIQ_image[row][col][2] > 2:
             threshold_image[row][col] = 255
         else:
             threshold_image[row][col] = 0
