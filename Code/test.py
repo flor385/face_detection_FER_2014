@@ -3,14 +3,16 @@ import cv2
 import FaceExtraction
 import os
 import histogram
+import util
 
 def test_histogram_py():
     ranges = histogram.face_range(1)
-    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_591.jpg'), 1)
-    YIQ_image = FaceExtraction.convert_RGB_to_YIQ(image)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_390.jpg'), 1)
+    YIQ_image = util.rgb_to_yiq(image)
 
     threshold_image = numpy.zeros((len(YIQ_image), len(YIQ_image[0]), 3), numpy.uint8)
 
+    
     for row in range(0, len(YIQ_image)):
         for col in range(0, len(YIQ_image[0])):
             #Pogadao sam threshold vrijednosti pomocu histograma generiranog sa generate_hist.py

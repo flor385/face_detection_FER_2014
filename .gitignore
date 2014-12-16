@@ -6,4 +6,6 @@
 
 #   ignore the FDDB database
 **/FDDB/*
+
+#   ignore the image histograms
 **/FDDB_histogram/*
