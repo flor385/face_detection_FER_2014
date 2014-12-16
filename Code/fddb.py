@@ -8,9 +8,10 @@ import logging
 import re
 import numpy as np
 import collections
+import math
 
 #   root folder of the FDDB database
-__PATH_ROOT = "FDDB"
+PATH_ROOT = "FDDB"
 
 log = logging.getLogger(__name__)
 
@@ -25,9 +26,9 @@ def image_file_paths(fold):
     """
 
     #   fold image paths are stored in a text file
-    path = os.path.join(__PATH_ROOT, "FDDB-fold-{:02d}.txt".format(fold))
+    path = os.path.join(PATH_ROOT, "FDDB-fold-{:02d}.txt".format(fold))
     with open(path) as f:
-        return [os.path.join(__PATH_ROOT, line.strip()) for line in f]
+        return [os.path.join(PATH_ROOT, line.strip()) for line in f]
 
 
 def image_elipses(fold):
@@ -48,7 +49,7 @@ def image_elipses(fold):
 
     #   fold image paths are stored in a text file
     path = os.path.join(
-        __PATH_ROOT, "FDDB-fold-{:02d}-ellipseList.txt".format(fold))
+        PATH_ROOT, "FDDB-fold-{:02d}-ellipseList.txt".format(fold))
     with open(path) as f:
 
         #   read file lines, keep only the stripped non-empty ones
@@ -64,7 +65,7 @@ def image_elipses(fold):
             if img_name is None:
                 break
 
-            img_path = os.path.join(__PATH_ROOT, img_name + ".jpg")
+            img_path = os.path.join(PATH_ROOT, img_name + ".jpg")
             r_val[img_path] = []
 
             #   second line is the number of faces in the photo
@@ -80,10 +81,46 @@ def image_elipses(fold):
     return r_val
 
 
-def face_mask(file_path, elipse_list, face_ind=None):
+def elipsis_mask(img_shape, elipsis_info):
     """
+    Generates a boolaen mask of given shape
+    that has True values for pixels within
+    the elipsis, and False without.
+
+    Elipsis info is given in FDDB format:
+    [major_axis_radius minor_axis_radius angle center_x center_y]
     """
-    pass
+
+    #   unpacking elipsis info
+    major_axis, minor_axis, angle, center_x, center_y = elipsis_info
+
+    def check_if_in_ellipse(point_x, point_y):
+        """
+        Calculates if a given point is within the elipsis.
+        """
+        cosa = math.cos(angle)
+        sina = math.sin(angle)
+        dd = minor_axis * minor_axis
+        DD = major_axis * major_axis
+
+        a = math.pow(
+            cosa * (point_x - center_x) + sina * (point_y - center_y), 2)
+        b = math.pow(
+            sina * (point_x - center_x) - cosa * (point_y - center_y), 2)
+        ellipse = (a / DD) + (b / dd)
+
+        if ellipse <= 1:
+            return True
+        else:
+            return False
+
+    #   return a mask for the given shape
+    r_val = np.zeros(img_shape, np.bool)
+    for i in range(img_shape[0]):
+        for j in range(img_shape[1]):
+            r_val[i][j] = check_if_in_ellipse(j, i)
+
+    return r_val
 
 
 def main():
