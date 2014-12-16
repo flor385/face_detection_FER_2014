@@ -83,7 +83,7 @@ def histograms(fold):
         log.info("Processing photo %s", photo_path)
 
         #   load photo, convert to YIO
-        log.debug(":Loading photo")
+        log.debug("Loading photo")
         photo_RGB = cv2.imread(photo_path, 1)
         log.debug("Converting to YIQ")
         photo_YIQ = util.rgb_to_yiq(photo_RGB)
@@ -93,7 +93,8 @@ def histograms(fold):
         photo_shape = photo_YIQ.shape[:2]
         mask_face = np.zeros(photo_shape, np.bool)
         for elipse in elipses:
-            mask_face = mask_face | fddb.elipsis_mask(photo_shape, elipse)
+            mask_face = mask_face | fddb.elipsis_mask_and_box(
+                photo_shape, elipse)[0]
 
         mask_noface = np.logical_not(mask_face)
 

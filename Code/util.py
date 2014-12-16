@@ -5,6 +5,8 @@ througout the project.
 import numpy as np
 import pickle
 import logging
+from zipfile import ZipFile, ZIP_DEFLATED
+from io import BytesIO
 
 log = logging.getLogger(__name__)
 
@@ -39,17 +41,27 @@ def rgb_to_yiq(rgb_data):
     return np.array(yiq_data).reshape(rgb_shape)
 
 
-def try_pickle_load(file_name):
+def try_pickle_load(file_name, zip=None):
     """
     Tries to load pickled data from a file with
     the given name. If unsuccesful, returns None.
+    Can compress using Zip.
 
     :param file_name: File path/name.
+    :param zip: If or not the file should be zipped.
+        If None, determined from file name.
     """
+    if zip is None:
+        zip = file_name.lower().endswith("zip")
 
     try:
-        file = open(file_name, "rb")
-        data = pickle.load(file)
+        if zip:
+            file = ZipFile(file_name, 'r')
+            entry = file.namelist()[0]
+            data = pickle.load(BytesIO(file.read(entry)))
+        else:
+            file = open(file_name, "rb")
+            data = pickle.load(file)
         log.info('Succesfully loaded pickle %s', file_name)
         return data
     except IOError:
@@ -60,18 +72,28 @@ def try_pickle_load(file_name):
             file.close()
 
 
-def try_pickle_dump(data, file_name):
+def try_pickle_dump(data, file_name, zip=None, entry_name="Data.pkl"):
     """
     Pickles given data tp the given file name.
     Returns True if succesful, False otherwise.
 
     :param data: The object to pickle.
     :param file_name: Name of file to pickle to.
+    :param zip: If or not the file should be zipped.
+        If None, determined from file name.
+    :param entry_name: If zipping, the name to be used
+        for the ZIP entry.
     """
+    if zip is None:
+        zip = file_name.lower().endswith("zip")
 
     try:
         log.info('Attempting to pickle data to %s', file_name)
-        pickle.dump(data, open(file_name, "wb"))
+        if zip:
+            file = ZipFile(file_name, 'w', ZIP_DEFLATED)
+            file.writestr(entry_name, pickle.dumps(data))
+        else:
+            pickle.dump(data, open(file_name, "wb"))
         return True
     except IOError:
         log.info('Failed to pickle data to %s', file_name)
