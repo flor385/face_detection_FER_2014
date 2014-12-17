@@ -7,6 +7,10 @@ a detector on the FDDB database
 """
 import logging
 import util
+import os
+import fddb
+import cv2
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +41,61 @@ class Detector(object):
         raise "Implement this"
 
         #   compare bounding boxes to average face
+
+
+#   root folder for average faces
+AVG_FACE_ROOT = fddb.PATH_ROOT + "_avg_faces"
+if not os.path.exists(AVG_FACE_ROOT):
+    os.makedirs(AVG_FACE_ROOT)
+
+
+def avg_face(fold, size):
+    """
+    Caluclates the average face for the given fold(s).
+    The resulting average face if of shape
+    (size, size, 1), in grayscale. Face is centered in
+    the square, aspect-ratio of original faces is retained.
+
+    :param fold: int or iterable of ints. Indicates the
+        fold(s) for which the average face is sought.
+
+    :param size: int, indicates the desired size of both
+        dimensions of the resulting average face.
+    """
+
+    #   file name used to cache the result
+    if isinstance(fold, int):
+        file_name = "avg_face_{:02d}_size_{:d}.png".format(fold, size)
+    else:
+        fold_string = "folds_[" + ", ".join([str(f) for f in fold]) + "]"
+        file_name = "avg_face_{:s}_size_{:d}.png".format(fold_string, size)
+    file_name = os.path.join(AVG_FACE_ROOT, file_name)
+
+    #   if given file exists, load and return it
+    if os.path.isfile(file_name):
+        return cv2.imread(file_name, 1)
+
+    if isinstance(fold, int):
+        #   load fold faces and filter out the too-small ones
+        faces = fddb.faces(fold)
+        raise "TODO: Filter out too small (any dimension lesser then size)"
+
+        raise "TODO: Convert to grayscale"
+        raise "TODO: Add padding to all the faces to make them squares"
+        raise "TODO: Scale all the square faces to (size, size) shape"
+        raise "TODO: Calulate average face"
+
+    else:
+        #   need to generate the average face
+        #   for multiple folds calculate the average of individual folds
+        #   we assume that folds are of similar sizes so averaging is OK
+        avgs = np.array([avg_face(f, size) for f in fold])
+        result = avgs.mean(axis=0)
+
+    #   store the result
+    cv2.imwrite(file_name, result)
+
+    return result
 
 
 def evaluation():
