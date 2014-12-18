@@ -15,6 +15,11 @@ import util
 #   root folder of the FDDB database
 PATH_ROOT = "FDDB"
 
+#   root folder for average faces
+AVG_FACE_ROOT = PATH_ROOT + "_avg_faces"
+if not os.path.exists(AVG_FACE_ROOT):
+    os.makedirs(AVG_FACE_ROOT)
+
 log = logging.getLogger(__name__)
 
 
@@ -203,6 +208,61 @@ def faces(fold):
         raise "Failed to pickle face images"
 
 
+def avg_face(fold, size):
+    """
+    Caluclates the average face for the given fold(s).
+    The resulting average face if of shape
+    (size, size, 1), in grayscale. Face is centered in
+    the square, aspect-ratio of original faces is retained.
+
+    :param fold: int or iterable of ints. Indicates the
+        fold(s) for which the average face is sought.
+
+    :param size: int, indicates the desired size of both
+        dimensions of the resulting average face.
+    """
+
+    #   file name used to cache the result
+    if isinstance(fold, int):
+        file_name = "avg_face_{:02d}_size_{:d}.png".format(fold, size)
+    else:
+        fold_string = "folds_(" + ",".join([str(f) for f in fold]) + ")"
+        file_name = "avg_face_{:s}_size_{:d}.png".format(fold_string, size)
+    file_name = os.path.join(AVG_FACE_ROOT, file_name)
+
+    #   if given file exists, load and return it
+    if os.path.isfile(file_name):
+        return cv2.imread(file_name, 0)
+
+    if isinstance(fold, int):
+        #   load fold faces and filter out the too-small ones
+        fold_faces = [f for f in faces(fold) if (
+            f.shape[0] >= size) & (f.shape[1] >= size)]
+
+        #   converting to grayscale
+        fold_faces = [f.mean(axis=2).astype(f.dtype) for f in fold_faces]
+
+        #   pad images into squares and resize to desired
+        fold_faces = [util.image_in_square_box(f, size) for f in fold_faces]
+
+        #   return mean face
+        result = np.mean(fold_faces, axis=0).astype(fold_faces[0].dtype)
+
+    else:
+        #   need to generate the average face
+        #   for multiple folds calculate the average of individual folds
+        #   we assume that folds are of similar sizes so averaging is OK
+        #   need to do mean with floats, to prevent accumulator overflow
+        #   then after convert to original type
+        avgs = [avg_face(f, size) for f in fold]
+        result = np.mean(avgs, axis=0).astype(avgs[0].dtype)
+
+    #   store the result
+    cv2.imwrite(file_name, result)
+
+    return result
+
+
 def main():
     """
     Main function of this modules.
@@ -212,9 +272,6 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG)
     log.info("Testing FDDB loading")
-
-    faces(4)
-    raise "Delete this and previous line"
 
     file_paths = image_file_paths(1)
     log.info("First ten files of the first fold:")
@@ -227,6 +284,9 @@ def main():
         log.info("\t%s", file_path)
         for elipse in elipse_list:
             log.info("\t%s", elipse)
+
+    avg_face([1, 2, 3, 4], 64)
+
 
 if __name__ == "__main__":
     main()

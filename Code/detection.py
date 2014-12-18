@@ -7,24 +7,133 @@ a detector on the FDDB database
 """
 import logging
 import util
-import os
-import fddb
-import cv2
 import numpy as np
+import histogram
+import fddb
+import scipy
+import cv2
 
 log = logging.getLogger(__name__)
 
 
-class Detector(object):
+class FaceClassifier(object):
+    """
+    A face classifier object. Classifies an image
+    on being a face or not based on it's distance
+    from the given average face.
 
-    def __init__(self, yiq_skin_ranges, avg_face, avg_face_treshold):
+    Distance is calculated in grayscale face. The image
+    being classified is padded and scaled to be of shape
+    identical to the average face (which must be a square).
+
+    Distance metric can be set, so can be classification
+    treshold.
+    """
+
+    def __init__(self, avg_face, treshold, dist_calc):
+        """
+        Initializes the face classifier.
+
+        :param avg_face: Average face image. Must be a
+            square image in grayscale.
+
+        :param treshold: The maximum distance an image
+            can have from the average image to be classified
+            as a face.
+
+        :param dist_calc: A distance calculation function.
+            Must be a callable that takes two 1D numpy
+            arrays and returns a scalar, such as the
+            functions in scipy.spatial.distance
+        """
+
+        #   making sure the avg_face is grayscale square
+        assert avg_face.ndim == 2
+        assert avg_face[0] == avg_face[1]
+
+        #   distances are calculated with flattened images
+        self.avg_face_shape = avg_face.shape
+        self.avg_face = avg_face.flatten()
+
+        self.dist_calc = dist_calc
+
+    def is_face(self, image_RGB, reject_too_small=True):
+        """
+        Classifies image_RGB as representing a face or not.
+
+        :param image_RGB: An image in RGB color space, a
+            numpy array of shape (height, width, RGB).
+
+        :reject_too_small: If or not images that are too
+            small (smaller then the average face) should
+            be rejected immediately. Image is too small if
+            both it's weight and height are smaller then
+            average image's.
+        """
+        if reject_too_small:
+            if image_RGB.shape[0] < self.avg_face_shape[0]:
+                if image_RGB.shape[1] < self.avg_face_shape[0]:
+                    return False
+
+        #   convert image to grayscale
+        image_gray = image_RGB.mean(axis=2).astype(image_RGB.dtype)
+
+        #   ensure image is a square of appropriate dimensions
+        image_gray = util.image_in_square_box(
+            image_gray, self.avg_face_shape[0])
+
+        #   flatten image
+        image_flat = image_gray.flatten()
+
+        #   calculate distance and return
+        dist = self.dist_calc(image_flat, self.avg_face)
+        return dist < self.treshold
+
+
+class Detector(object):
+    """
+    A face detector object. Given an unconstrained image it
+    detects faces in it and returns the bounding boxes (square shaped)
+    for those faces.
+
+    Based on skin color detection in YIQ color space and subsequent
+    comprison to an average face. Both steps are parameterised.
+    """
+
+    def __init__(self, yiq_skin_ranges, face_classifier):
+        """
+        Constructor.
+
+        :param yiq_skin_ranges: A numpy array of shape (3, 2).
+            Each row corresponds to a channel in YIQ. Columns
+            are upper and lower bounds for channel values that
+            indicate skin. For a color in YIQ to be accepted
+            as skin color it needs to satisfy all channels.
+
+        :param face_classifier: A FaceClassifier object that
+            does final classificaton of bouding boxes found
+            by skin-color-detection.
+        """
         assert yiq_skin_ranges.shape == (3, 2)
 
         self.yiq_skin_ranges = yiq_skin_ranges
-        self.avg_face = avg_face
-        self.avg_face_treshold = avg_face_treshold
+        self.face_classifier = face_classifier
+
+    def __bbox_clip(img, bbox):
+        """
+        Helper function that returns an image clip given bounding box info.
+        """
+        return img[bbox[0][0]:bbox[1][0], bbox[0][1]:bbox[1][1]]
 
     def detect(self, image_RGB):
+        """
+        Main detection function. Processes the given image, detects faces
+        and returns a list of bouding boxes for found faces. Bounding boxes
+        are squares. A bounding box is each box is an iterable of two points:
+        box upper left coordinates and box lower right coordinates.
+        Each point is an iterable of 2 ints that are point coordinates in numpy
+        image representation.
+        """
 
         #   convert image to YIQ
         image_YIQ = util.rgb_to_yiq(image_RGB)
@@ -38,64 +147,19 @@ class Detector(object):
         raise "Implement this"
 
         #   create bounding boxes
+        #   each box is an iterable of two points: box upper left and
+        #       box lower right.
+        #   each point is an iterable of 2 coordinates in image (numpy style)
+        bboxes = None
         raise "Implement this"
 
-        #   compare bounding boxes to average face
+        #   finally see what the face classifier says
+        #   note that the classifier works on the grayscale image made from RGB
+        image_gray = np.mean(image_RGB, axis=2).astype(image_RGB.dtype)
+        bboxes = [b for b in bboxes if self.face_classifier.is_face(
+            self.__bbox_clip(b, image_gray))]
 
-
-#   root folder for average faces
-AVG_FACE_ROOT = fddb.PATH_ROOT + "_avg_faces"
-if not os.path.exists(AVG_FACE_ROOT):
-    os.makedirs(AVG_FACE_ROOT)
-
-
-def avg_face(fold, size):
-    """
-    Caluclates the average face for the given fold(s).
-    The resulting average face if of shape
-    (size, size, 1), in grayscale. Face is centered in
-    the square, aspect-ratio of original faces is retained.
-
-    :param fold: int or iterable of ints. Indicates the
-        fold(s) for which the average face is sought.
-
-    :param size: int, indicates the desired size of both
-        dimensions of the resulting average face.
-    """
-
-    #   file name used to cache the result
-    if isinstance(fold, int):
-        file_name = "avg_face_{:02d}_size_{:d}.png".format(fold, size)
-    else:
-        fold_string = "folds_[" + ", ".join([str(f) for f in fold]) + "]"
-        file_name = "avg_face_{:s}_size_{:d}.png".format(fold_string, size)
-    file_name = os.path.join(AVG_FACE_ROOT, file_name)
-
-    #   if given file exists, load and return it
-    if os.path.isfile(file_name):
-        return cv2.imread(file_name, 1)
-
-    if isinstance(fold, int):
-        #   load fold faces and filter out the too-small ones
-        faces = fddb.faces(fold)
-        raise "TODO: Filter out too small (any dimension lesser then size)"
-
-        raise "TODO: Convert to grayscale"
-        raise "TODO: Add padding to all the faces to make them squares"
-        raise "TODO: Scale all the square faces to (size, size) shape"
-        raise "TODO: Calulate average face"
-
-    else:
-        #   need to generate the average face
-        #   for multiple folds calculate the average of individual folds
-        #   we assume that folds are of similar sizes so averaging is OK
-        avgs = np.array([avg_face(f, size) for f in fold])
-        result = avgs.mean(axis=0)
-
-    #   store the result
-    cv2.imwrite(file_name, result)
-
-    return result
+        return bboxes
 
 
 def evaluation():
@@ -103,6 +167,16 @@ def evaluation():
     log.info("Face detection evaluation on FDDB")
     log.info("We'll be doing 10-fold cross-evaluation with "
              "embedded 9-fold cross-validation")
+
+    #   defining the parameter space
+    #   parameter space is a cartesian product (we do grid searching)
+    #   on parameter values of all parameter types
+    param_space = []
+    for avg_size in [32, 64]:
+        for dist_tsh in [scipy.spatial.distance.cosine]:
+            for dist_mtr in [scipy.spatial.distance.euclidean]:
+                p_set = (avg_size, dist_tsh, dist_mtr)
+                param_space.append(p_set)
 
     #   outer fold for evaluation purposes
     all_folds = range(1, 11)
@@ -116,6 +190,9 @@ def evaluation():
         #   try out detector parameters
         for param_set in param_space:
 
+            #   unpack prameters from parameter space
+            avg_face_size, face_dist_tsh, face_dist_metric = param_set
+
             #   validation loop
             for validation_fold in validation_folds:
                 log.info("Validating on fold %d", validation_fold)
@@ -125,8 +202,20 @@ def evaluation():
                 training_folds.remove(validation_fold)
 
                 #   fit detector on training-folds
+                skin_ranges = histogram.face_range(training_folds)
+                avg_face = fddb.avg_face(training_folds, avg_face_size)
+                fc = FaceClassifier(avg_face, face_dist_tsh, face_dist_metric)
+                detector = Detector(skin_ranges, fc)
 
                 #   evaluate detector on validation_fold
+                for img_path in fddb.image_file_paths(validation_fold):
+                    bboxes = detector.detect(cv2.imread(img_path, 1))
+
+                    #   match bboxes to elipses
+                    #   for eatch match calc intersection_size / union_size
+                    #   for bboxes and elipses that are without their pair
+                    #   add 0 to score and 1 to detection count
+
 
         #   fit detector with best performing parameters
         #   test on the testing fold
@@ -136,7 +225,7 @@ def evaluation():
 
 def main():
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     log.info("Detection main, will start detector evaluation")
 
     evaluation()

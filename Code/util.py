@@ -7,6 +7,7 @@ import pickle
 import logging
 from zipfile import ZipFile, ZIP_DEFLATED
 from io import BytesIO
+import cv2
 
 log = logging.getLogger(__name__)
 
@@ -70,6 +71,41 @@ def try_pickle_load(file_name, zip=None):
     finally:
         if 'file' in locals():
             file.close()
+
+
+def image_in_square_box(img, side_size=None, padding_value=0):
+    """
+    Fits the image into a square box, the original image
+    being centered in it. If side_size param is given, the image
+    is fitted into a square box of desired size.
+
+    :param img: The image to fit.
+    :param side_size: The desired size of square side. If None,
+        an image is only padded into a square.
+    :param padding_value: The value to pad the image with,
+        default is 0.
+    """
+
+    #   image padding that works on images regardless of
+    #   how many channels (last dimension) they have
+    #   first we need to reshape image so it has 3 dimensions
+    shape = img.shape
+    img = img.reshape(shape[0], shape[1], np.prod(shape) / np.prod(shape[:2]))
+    #   now determine the padding amounts to make the image a square
+    dim = max(shape[:2])
+    pad_up = (dim - img.shape[0]) / 2
+    pad_down = dim - img.shape[0] - pad_up
+    pad_left = (dim - img.shape[1]) / 2
+    pad_right = dim - img.shape[1] - pad_left
+    #   now do actual padding
+    img = np.pad(img, ((pad_up, pad_down), (pad_left, pad_right), (0, 0)),
+                 'constant', constant_values=padding_value)
+
+    #   if no size is given, return the padded image
+    if side_size is None:
+        return img
+
+    return cv2.resize(img, (side_size, side_size))
 
 
 def try_pickle_dump(data, file_name, zip=None, entry_name="Data.pkl"):
