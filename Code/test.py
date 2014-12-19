@@ -15,7 +15,6 @@ def test_histogram_py():
     
     for row in range(0, len(YIQ_image)):
         for col in range(0, len(YIQ_image[0])):
-            #Pogadao sam threshold vrijednosti pomocu histograma generiranog sa generate_hist.py
             if YIQ_image[row][col][1] >= ranges[1][0] and YIQ_image[row][col][1] <= ranges[1][1] and YIQ_image[row][col][2] >= ranges[2][0] and YIQ_image[row][col][2] <= ranges[2][1]:
                 threshold_image[row][col] = 255
             else:
