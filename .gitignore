@@ -4,8 +4,18 @@
 #   Mac metadata
 .DS_Store
 
-#   ignore the FDDB database
+#   ignore the FDDB database and most of the cached data
 **/FDDB/*
-
-#   ignore the image histograms
 **/FDDB_histogram/*
+**/FDDB_face_only/*
+**/FDDB_face_masks/*
+**/FDDB_avg_faces/*
+
+**/FDDB_subset/*
+**/FDDB_subset_histogram/*
+**/FDDB_subset_face_only/*
+**/FDDB_subset_face_masks/*
+**/FDDB_subset_avg_faces/*
+
+#   detection debug path
+**/DETECTION_DEBUG/*

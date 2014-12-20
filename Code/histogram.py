@@ -10,7 +10,7 @@ in the RGB or YIQ color spaces. It is
 expected that the YIQ color space is more
 suitable for color-based face detection.
 """
-import fddb
+from fddb import PATH_ROOT, image_face_masks_bboxes
 import logging
 import numpy as np
 import cv2
@@ -21,7 +21,7 @@ import os
 log = logging.getLogger(__name__)
 
 #   root folder for histogram pickled data and image storage
-HIST_ROOT = fddb.PATH_ROOT + "_histogram"
+HIST_ROOT = PATH_ROOT + "_histogram"
 if not os.path.exists(HIST_ROOT):
     os.makedirs(HIST_ROOT)
 
@@ -78,7 +78,7 @@ def histograms(fold):
 
     #   go through all the photos in the fold
     #   and their FDDB elipsis info (face annotations)
-    for photo_path, elipses in fddb.image_elipses(fold).items():
+    for photo_path, (masks, bboxes) in image_face_masks_bboxes(fold).items():
 
         log.info("Processing photo %s", photo_path)
 
@@ -90,12 +90,7 @@ def histograms(fold):
 
         #   create masks from elipses and OR them into one mask
         log.debug("Creating faces mask")
-        photo_shape = photo_YIQ.shape[:2]
-        mask_face = np.zeros(photo_shape, np.bool)
-        for elipse in elipses:
-            mask_face = mask_face | fddb.elipsis_mask_and_box(
-                photo_shape, elipse)[0]
-
+        mask_face = masks.any(axis=0)
         mask_noface = np.logical_not(mask_face)
 
         #   add current image histograms to total histograms
