@@ -10,19 +10,30 @@ import util
 import numpy as np
 import histogram
 import fddb
-import scipy
+import scipy.spatial
 import cv2
+import os
 
 log = logging.getLogger(__name__)
 
+#   this path is used for writing out images during detection
+#   it is for debugging purposes, these images are not necessary
+#   in production
+#   to disable this functionality set the path to None
+DEBUG_DIR = "DETECTION_DEBUG"
+if DEBUG_DIR is not None:
+    if not os.path.exists(DEBUG_DIR):
+        os.makedirs(DEBUG_DIR)
+
 
 class FaceClassifier(object):
+
     """
     A face classifier object. Classifies an image
     on being a face or not based on it's distance
     from the given average face.
 
-    Distance is calculated in grayscale face. The image
+    Distance is calculated in grayscale space. The image
     being classified is padded and scaled to be of shape
     identical to the average face (which must be a square).
 
@@ -30,12 +41,20 @@ class FaceClassifier(object):
     treshold.
     """
 
-    def __init__(self, avg_face, treshold, dist_calc):
+    def __init__(self, avg_face, avg_face_mask, treshold, dist_calc):
         """
         Initializes the face classifier.
 
         :param avg_face: Average face image. Must be a
             square image in grayscale.
+
+        :param avg_face_mask: Average face mask. A boolean array
+            of shape same as avg_face. Has True on pixels where
+            where the face is in the image (in average), False
+            elsewhere. The purpose of it is to extract the face
+            pixels from the background (by setting background
+            pixels to 0), thus improving distance-based face
+            classification.
 
         :param treshold: The maximum distance an image
             can have from the average image to be classified
@@ -47,13 +66,17 @@ class FaceClassifier(object):
             functions in scipy.spatial.distance
         """
 
-        #   making sure the avg_face is grayscale square
+        #   making sure the avg face is grayscale square
         assert avg_face.ndim == 2
-        assert avg_face[0] == avg_face[1]
+        #   making sure that avg face and mask are of OK sizes
+        assert avg_face.shape[0] == avg_face.shape[1]
+        assert avg_face_mask.shape[0] == avg_face_mask.shape[1]
+        assert avg_face_mask.shape[0] == avg_face.shape[0]
 
         #   distances are calculated with flattened images
         self.avg_face_shape = avg_face.shape
         self.avg_face = avg_face.flatten()
+        self.avg_face_mask = avg_face_mask
 
         self.dist_calc = dist_calc
 
@@ -82,6 +105,9 @@ class FaceClassifier(object):
         image_gray = util.image_in_square_box(
             image_gray, self.avg_face_shape[0])
 
+        #   apply the mask that zeroes the background
+        image_gray[self.avg_face_mask] = 0
+
         #   flatten image
         image_flat = image_gray.flatten()
 
@@ -91,6 +117,7 @@ class FaceClassifier(object):
 
 
 class Detector(object):
+
     """
     A face detector object. Given an unconstrained image it
     detects faces in it and returns the bounding boxes (square shaped)
@@ -143,15 +170,26 @@ class Detector(object):
             (image_YIQ < self.yiq_skin_ranges[:, 1])
         skin_pixels = skin_pixels.all(axis=2)
 
+        #   store mask, if debugging is enabled
+        if DEBUG_DIR is not None:
+            #   write out one image in 100
+            if np.random.randint(0, 99) == 0:
+                nr = np.random.randint(0, 1e6)
+                path = "{:06d}_orig.jpg".format(nr)
+                cv2.imwrite(os.path.join(DEBUG_DIR, path), image_RGB)
+                path = "{:06d}_mask.jpg".format(nr)
+                cv2.imwrite(os.path.join(DEBUG_DIR, path),
+                            skin_pixels.astype(np.uint8) * 255)
+
         #   do mask processing
-        raise "Implement this"
+        log.error("Implement mask processing")
 
         #   create bounding boxes
         #   each box is an iterable of two points: box upper left and
         #       box lower right.
         #   each point is an iterable of 2 coordinates in image (numpy style)
-        bboxes = None
-        raise "Implement this"
+        bboxes = []
+        log.error("Implement face bound-boxing")
 
         #   finally see what the face classifier says
         #   note that the classifier works on the grayscale image made from RGB
@@ -201,10 +239,14 @@ def evaluation():
                 training_folds = list(validation_folds)
                 training_folds.remove(validation_fold)
 
-                #   fit detector on training-folds
+                #   fit detector parameters on training-folds
                 skin_ranges = histogram.face_range(training_folds)
                 avg_face = fddb.avg_face(training_folds, avg_face_size)
-                fc = FaceClassifier(avg_face, face_dist_tsh, face_dist_metric)
+                avg_mask = fddb.avg_mask(training_folds, avg_face_size) > 127
+
+                #   create face classifier and detector
+                fc = FaceClassifier(
+                    avg_face, avg_mask, face_dist_tsh, face_dist_metric)
                 detector = Detector(skin_ranges, fc)
 
                 #   evaluate detector on validation_fold
@@ -215,12 +257,14 @@ def evaluation():
                     #   for eatch match calc intersection_size / union_size
                     #   for bboxes and elipses that are without their pair
                     #   add 0 to score and 1 to detection count
-
+                    log.error("Implement box-elipse matching")
 
         #   fit detector with best performing parameters
         #   test on the testing fold
+        log.error("Fit detector on best params for eval")
 
     #   report cross-validation results
+    log.error("Report classification results")
 
 
 def main():
