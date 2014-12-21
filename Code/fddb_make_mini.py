@@ -5,10 +5,14 @@ and testing. The subset size can be adjusted.
 """
 
 import logging
-import fddb
 import sys
 import os
 import shutil
+
+#   this points to the folder where the full FDDB is stored
+#   we can't use fddb.PATH_ROOT because that might at any
+#   time point to the subset
+FDDB_FULL_DIR = "FDDB"
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +32,7 @@ def make_subset(subs_dir, subs_size):
 
         #   first handle file paths
         fold_paths = "FDDB-fold-{:02d}.txt".format(fold)
-        with open(os.path.join(fddb.PATH_ROOT, fold_paths), "r") as f:
+        with open(os.path.join(FDDB_FULL_DIR, fold_paths), "r") as f:
             img_paths = [l.strip() for l in f.readlines()[:subs_size]]
         #   and store them
         with open(os.path.join(subs_dir, fold_paths), "w") as f:
@@ -46,12 +50,12 @@ def make_subset(subs_dir, subs_size):
                 os.makedirs(os.path.dirname(full_path))
 
             log.debug("Copying image to %s", full_path)
-            shutil.copy(os.path.join(fddb.PATH_ROOT, img_path),
+            shutil.copy(os.path.join(FDDB_FULL_DIR, img_path),
                         full_path)
 
         #   finally, copy the elipse info files
         fold_elipses = "FDDB-fold-{:02d}-ellipseList.txt".format(fold)
-        with open(os.path.join(fddb.PATH_ROOT, fold_elipses), "r") as f:
+        with open(os.path.join(FDDB_FULL_DIR, fold_elipses), "r") as f:
             img_elipses = [l.strip() for l in f.readlines()]
 
         with open(os.path.join(subs_dir, fold_elipses), "w") as f:

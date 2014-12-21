@@ -116,3 +116,5 @@ def test():
 
     detect_face_regions(image, 1)
 
+test()
+
