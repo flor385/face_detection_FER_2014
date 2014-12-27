@@ -200,6 +200,88 @@ class Detector(object):
         return bboxes
 
 
+def match_score(bboxes_detected, bboxes_true, masks):
+    """
+    Calculates the score for given detection parameters.
+    Returns the ratio between all intersetcions and
+    all unions.
+
+    :param bboxes_detected: Bounding boxes of faces
+        detected in an image.
+    :param bboxes_true: Bounding boxes of annotated
+        faces. Only serve for matching purposes.
+    :param masks: Boolean masks of the whole image.
+    """
+
+    #   sum of intersections and unions
+    union_total = 0.0
+    intersection_total = 0.0
+
+    #   match detected bboxes to known truths
+    #   bboxes_matched is a list of bboxes corresponding
+    bboxes_matched = []
+    #   to bboxes_true
+    for bbox_true in bboxes_true:
+
+        #   for current bbox_true find best match
+        overlaps = [util.bbox_overlap(bbox_true, b) for b in bboxes_detected]
+        argmax = np.argmax(overlaps)
+        best_bbox = None if (sum(overlaps) == 0) else bboxes_detected[argmax]
+
+        #   remember the best match and remove from list
+        bboxes_matched.append(best_bbox)
+        if best_bbox is not None:
+            bboxes_detected.remove(best_bbox)
+
+    #   now for matched boxes calculated metric
+    for mask, bbox in zip(masks, bboxes_matched):
+
+        #   calculate true/detection intersection
+        if bbox is None:
+            intersection = 0
+        else:
+            intersection = mask[bbox[0][0]:bbox[1][0],
+                                bbox[0][1]:bbox[1][1]].sum()
+
+        #   calcualte truth/detection union
+        union = mask.sum()
+        if bbox is not None:
+            union += (bbox[1][0] - bbox[0][0]) * (bbox[1][1] - bbox[0][1])
+        union -= intersection
+
+        #   append the metrics to total scores
+        union_total += union
+        intersection_total += intersection
+
+    #   also add non-matched detected to scoring
+    for bb in bboxes_detected:
+        union_total += (bbox[1][0] - bbox[0][0]) * (bbox[1][1] - bbox[0][1])
+
+    return intersection_total / union_total
+
+
+def detector_for_params(folds, param_set):
+    """
+    Returns a detector fitted on the given
+    FDDB fold with the given parameter set.
+    Parameter set is a tuple consiting of
+    (average_face_size, face_dist_treshold,
+        face_dist_metric).
+    """
+
+    avg_face_size, face_dist_tsh, face_dist_metric = param_set
+
+    #   fit detector parameters on training-folds
+    skin_ranges = histogram.face_range(folds)
+    avg_face = fddb.avg_face(folds, avg_face_size)
+    avg_mask = fddb.avg_mask(folds, avg_face_size) > 127
+
+    #   create face classifier and detector
+    fc = FaceClassifier(
+        avg_face, avg_mask, face_dist_tsh, face_dist_metric)
+    return Detector(skin_ranges, fc)
+
+
 def evaluation():
 
     log.info("Face detection evaluation on FDDB")
@@ -216,8 +298,24 @@ def evaluation():
                 p_set = (avg_size, dist_tsh, dist_mtr)
                 param_space.append(p_set)
 
+    def eval_detector(detector, folds):
+        """
+        A helper function that returns detection
+        scoring on given FDDB folds.
+        """
+        scores = []
+        for img_path, (masks, bboxes_true) in \
+                fddb.image_face_masks_bboxes(folds).items():
+
+            #   run the image through the detector and score it
+            bboxes_detected = detector.detect(cv2.imread(img_path, 1))
+            scores.append(match_score(bboxes_detected, bboxes_true, masks))
+
+        return np.mean(scores)
+
     #   outer fold for evaluation purposes
     all_folds = range(1, 11)
+    eval_scores = []
     for test_fold in all_folds:
         log.info("Testing on fold %d", test_fold)
 
@@ -225,13 +323,14 @@ def evaluation():
         validation_folds = list(all_folds)
         validation_folds.remove(test_fold)
 
+        #   a dict of scores for param sets
+        param_set_score_dict = {}
+
         #   try out detector parameters
         for param_set in param_space:
 
-            #   unpack prameters from parameter space
-            avg_face_size, face_dist_tsh, face_dist_metric = param_set
-
             #   validation loop
+            validation_fold_scores = []
             for validation_fold in validation_folds:
                 log.info("Validating on fold %d", validation_fold)
 
@@ -240,31 +339,33 @@ def evaluation():
                 training_folds.remove(validation_fold)
 
                 #   fit detector parameters on training-folds
-                skin_ranges = histogram.face_range(training_folds)
-                avg_face = fddb.avg_face(training_folds, avg_face_size)
-                avg_mask = fddb.avg_mask(training_folds, avg_face_size) > 127
+                detector = detector_for_params(training_folds, param_set)
 
-                #   create face classifier and detector
-                fc = FaceClassifier(
-                    avg_face, avg_mask, face_dist_tsh, face_dist_metric)
-                detector = Detector(skin_ranges, fc)
+                #   and evaluate it on the current validation fold
+                validation_fold_scores.append(
+                    eval_detector(detector, validation_fold))
 
-                #   evaluate detector on validation_fold
-                for img_path in fddb.image_file_paths(validation_fold):
-                    bboxes = detector.detect(cv2.imread(img_path, 1))
-
-                    #   match bboxes to elipses
-                    #   for eatch match calc intersection_size / union_size
-                    #   for bboxes and elipses that are without their pair
-                    #   add 0 to score and 1 to detection count
-                    log.error("Implement box-elipse matching")
+            #   remember total score for current param set
+            param_set_score_dict[param_set] = np.mean(validation_fold_scores)
 
         #   fit detector with best performing parameters
         #   test on the testing fold
-        log.error("Fit detector on best params for eval")
+        best_params = param_set_score_dict.keys[
+            np.argmax(param_set_score_dict.values())]
+        log.info("Best params for fold %d: %r", test_fold, best_params)
+
+        #   do final fold evaluation
+        best_detector = detector_for_params(
+            validation_folds, detector_for_params)
+        score = eval_detector(best_detector, test_fold)
+        eval_scores.append(score)
+        log.info("Eval score on fold %d: %.2f", test_fold, score)
 
     #   report cross-validation results
-    log.error("Report classification results")
+    log.info("\n\nFinal evaluation results:")
+    log.info("Best scores on all folds: %r", eval_scores)
+    log.info("Average score: %.2f, +- %.2f",
+             np.mean(eval_scores), np.std(eval_scores))
 
 
 def main():
