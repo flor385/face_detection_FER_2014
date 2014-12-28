@@ -107,12 +107,41 @@ def detect_face_regions(image, fold):
 
         if max_x - min_x > 10 and max_y - min_y > 10:
             images.append(([min_y, min_x], [max_y, max_x]))
+            """
+            cv2.rectangle(image, (min_y, min_x), (max_y, max_x), (0,0,0), 2)
+            """
 
-    #vrati bounding boxove
+    """
+    cv2.imshow('image', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    """        
+    #vrati bounding boxove       
     return images
 
 #metoda koja testira cijelu stvar
 def test():
-    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_650.jpg'), 1)
-
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_115.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_257.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_276.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_362.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_475.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_496.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_498.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_558.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_591.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_643.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_674.jpg'), 1)
+    detect_face_regions(image, 1)
+    image = cv2.imread(os.path.join('FDDB', '2002', '08', '11', 'big', 'img_752.jpg'), 1)
     detect_face_regions(image, 1)
