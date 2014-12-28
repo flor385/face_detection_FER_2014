@@ -109,9 +109,9 @@ def detect_face_regions(image, fold):
             images.append(([min_y, min_x], [max_y, max_x]))
             """
             cv2.rectangle(image, (min_y, min_x), (max_y, max_x), (0,0,0), 2)
-            """
+            
 
-    """
+    
     cv2.imshow('image', image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
