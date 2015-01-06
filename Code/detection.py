@@ -212,9 +212,7 @@ class Detector(object):
         #   if debugging, store images for reviewing
         if (DEBUG_DIR is not None) & (np.random.randint(0, 25) == 0):
             nr = np.random.randint(0, 1e6)
-            path = "{:06d}_0_orig.jpg".format(nr)
-            cv2.imwrite(os.path.join(DEBUG_DIR, path), image_RGB)
-            path = "{:06d}_1_mask.jpg".format(nr)
+            path = "{:06d}_mask.jpg".format(nr)
             cv2.imwrite(os.path.join(DEBUG_DIR, path), skin_pixels)
 
             #   draw the boxes over an image
@@ -223,15 +221,13 @@ class Detector(object):
             for bbox in bboxes:
                 im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = red
                 im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = red
-            path = "{:06d}_2_bboxes.jpg".format(nr)
-            cv2.imwrite(os.path.join(DEBUG_DIR, path), im)
 
-            #   draw the faces over an image
+            #   draw the accepted faces over an image
             green = (128, 255, 128)
             for bbox in bboxes_filtered:
                 im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = green
                 im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = green
-            path = "{:06d}_3_faces.jpg".format(nr)
+            path = "{:06d}_faces.jpg".format(nr)
             cv2.imwrite(os.path.join(DEBUG_DIR, path), im)
 
         return bboxes_filtered
