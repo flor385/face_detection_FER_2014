@@ -218,8 +218,8 @@ class Detector(object):
             cv2.imwrite(os.path.join(DEBUG_DIR, path), skin_pixels)
 
             #   draw the boxes over an image
-            red = (128, 128, 255)
             im = np.array(image_RGB)
+            red = (128, 128, 255)
             for bbox in bboxes:
                 im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = red
                 im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = red
@@ -228,7 +228,6 @@ class Detector(object):
 
             #   draw the faces over an image
             green = (128, 255, 128)
-            im = np.array(image_RGB)
             for bbox in bboxes_filtered:
                 im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = green
                 im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = green
@@ -334,7 +333,7 @@ def evaluation():
     #   on parameter values of all parameter types
     param_space = []
     for avg_size in [32]:
-        for dist_tsh in [8.0]:
+        for dist_tsh in [7.0, 10.0]:
             for dist_mtr in [scipy.spatial.distance.euclidean]:
                 p_set = (avg_size, dist_tsh, dist_mtr)
                 param_space.append(p_set)
