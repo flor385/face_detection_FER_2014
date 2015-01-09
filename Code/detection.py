@@ -11,6 +11,7 @@ import numpy as np
 import histogram
 import fddb
 import scipy.spatial
+from scipy import ndimage
 import cv2
 import os
 
@@ -79,13 +80,14 @@ class FaceClassifier(object):
         self.avg_face_mask = avg_face_mask
 
         self.dist_calc = dist_calc
+        self.treshold = treshold
 
-    def is_face(self, image_RGB, reject_too_small=True):
+    def is_face(self, image_gray, reject_too_small=True):
         """
-        Classifies image_RGB as representing a face or not.
+        Classifies image_gray as representing a face or not.
 
-        :param image_RGB: An image in RGB color space, a
-            numpy array of shape (height, width, RGB).
+        :param image_gray: An image in grayscale color space, a
+            numpy array of shape (height, width).
 
         :reject_too_small: If or not images that are too
             small (smaller then the average face) should
@@ -94,12 +96,11 @@ class FaceClassifier(object):
             average image's.
         """
         if reject_too_small:
-            if image_RGB.shape[0] < self.avg_face_shape[0]:
-                if image_RGB.shape[1] < self.avg_face_shape[0]:
+            if image_gray.shape[0] < self.avg_face_shape[0]:
+                if image_gray.shape[1] < self.avg_face_shape[1]:
+                    log.debug("Face too small %r < %r",
+                              image_gray.shape, self.avg_face_shape)
                     return False
-
-        #   convert image to grayscale
-        image_gray = image_RGB.mean(axis=2).astype(image_RGB.dtype)
 
         #   ensure image is a square of appropriate dimensions
         image_gray = util.image_in_square_box(
@@ -113,6 +114,7 @@ class FaceClassifier(object):
 
         #   calculate distance and return
         dist = self.dist_calc(image_flat, self.avg_face)
+        log.debug("Face dist from average: %.2f", dist)
         return dist < self.treshold
 
 
@@ -146,11 +148,39 @@ class Detector(object):
         self.yiq_skin_ranges = yiq_skin_ranges
         self.face_classifier = face_classifier
 
-    def __bbox_clip(img, bbox):
+    def __bbox_clip(self, img, bbox):
         """
         Helper function that returns an image clip given bounding box info.
         """
         return img[bbox[0][0]:bbox[1][0], bbox[0][1]:bbox[1][1]]
+
+    def __bboxes_for_mask(self, mask):
+
+        # remove mask noise (small particles) and then dillate
+        kernel = np.ones((3, 3), np.uint8)
+        opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
+        dilated = cv2.dilate(opening, kernel, iterations=5)
+
+        # do component labeling
+        markers, component_count = ndimage.label(dilated)
+
+        #   remove components too big or too small
+        #   first calc all component sizes
+        comp_sizes = np.array([(markers == c).sum() for c in range(
+            1, component_count + 1)], dtype=float)
+        #   normalize sizes with image size
+        comp_sizes /= np.prod(mask.shape)
+
+        #   remove compnents substantially smaller then average
+        comp_size_avg = comp_sizes.mean()
+        for comp_ind, size in enumerate(comp_sizes):
+            size = size / comp_size_avg
+            if size < 0.5:
+                markers[markers == (comp_ind + 1)] = 0
+
+        #   for each of the remaining components create a bounding box
+        masks = [markers == c for c in range(1, component_count + 1)]
+        return [util.bbox_for_mask(m) for m in masks if m.sum() > 0]
 
     def detect(self, image_RGB):
         """
@@ -168,36 +198,39 @@ class Detector(object):
         #   do skin color detection
         skin_pixels = (image_YIQ > self.yiq_skin_ranges[:, 0]) & \
             (image_YIQ < self.yiq_skin_ranges[:, 1])
-        skin_pixels = skin_pixels.all(axis=2)
+        skin_pixels = skin_pixels.all(axis=2).astype(np.uint8) * 255
 
-        #   store mask, if debugging is enabled
-        if DEBUG_DIR is not None:
-            #   write out one image in 100
-            if np.random.randint(0, 99) == 0:
-                nr = np.random.randint(0, 1e6)
-                path = "{:06d}_orig.jpg".format(nr)
-                cv2.imwrite(os.path.join(DEBUG_DIR, path), image_RGB)
-                path = "{:06d}_mask.jpg".format(nr)
-                cv2.imwrite(os.path.join(DEBUG_DIR, path),
-                            skin_pixels.astype(np.uint8) * 255)
-
-        #   do mask processing
-        log.error("Implement mask processing")
-
-        #   create bounding boxes
-        #   each box is an iterable of two points: box upper left and
-        #       box lower right.
-        #   each point is an iterable of 2 coordinates in image (numpy style)
-        bboxes = []
-        log.error("Implement face bound-boxing")
+        #   get bounding boxes for the skin pixel mask
+        bboxes = self.__bboxes_for_mask(skin_pixels)
 
         #   finally see what the face classifier says
         #   note that the classifier works on the grayscale image made from RGB
         image_gray = np.mean(image_RGB, axis=2).astype(image_RGB.dtype)
-        bboxes = [b for b in bboxes if self.face_classifier.is_face(
-            self.__bbox_clip(b, image_gray))]
+        bboxes_filtered = [b for b in bboxes if self.face_classifier.is_face(
+            self.__bbox_clip(image_gray, b))]
 
-        return bboxes
+        #   if debugging, store images for reviewing
+        if (DEBUG_DIR is not None) & (np.random.randint(0, 25) == 0):
+            nr = np.random.randint(0, 1e6)
+            path = "{:06d}_mask.jpg".format(nr)
+            cv2.imwrite(os.path.join(DEBUG_DIR, path), skin_pixels)
+
+            #   draw the boxes over an image
+            im = np.array(image_RGB)
+            red = (128, 128, 255)
+            for bbox in bboxes:
+                im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = red
+                im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = red
+
+            #   draw the accepted faces over an image
+            green = (128, 255, 128)
+            for bbox in bboxes_filtered:
+                im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = green
+                im[[bbox[0][0], bbox[1][0]], bbox[0][1]:bbox[1][1]] = green
+            path = "{:06d}_faces.jpg".format(nr)
+            cv2.imwrite(os.path.join(DEBUG_DIR, path), im)
+
+        return bboxes_filtered
 
 
 def match_score(bboxes_detected, bboxes_true, masks):
@@ -225,13 +258,16 @@ def match_score(bboxes_detected, bboxes_true, masks):
 
         #   for current bbox_true find best match
         overlaps = [util.bbox_overlap(bbox_true, b) for b in bboxes_detected]
-        argmax = np.argmax(overlaps)
-        best_bbox = None if (sum(overlaps) == 0) else bboxes_detected[argmax]
+        if len(overlaps) > 0:
+            best_bbox = bboxes_detected[np.argmax(overlaps)]
+        else:
+            best_bbox = None
 
         #   remember the best match and remove from list
         bboxes_matched.append(best_bbox)
         if best_bbox is not None:
-            bboxes_detected.remove(best_bbox)
+            bboxes_detected = [
+                b for b in bboxes_detected if not np.array_equal(b, best_bbox)]
 
     #   now for matched boxes calculated metric
     for mask, bbox in zip(masks, bboxes_matched):
@@ -292,8 +328,8 @@ def evaluation():
     #   parameter space is a cartesian product (we do grid searching)
     #   on parameter values of all parameter types
     param_space = []
-    for avg_size in [32, 64]:
-        for dist_tsh in [scipy.spatial.distance.cosine]:
+    for avg_size in [32]:
+        for dist_tsh in [7.0, 10.0]:
             for dist_mtr in [scipy.spatial.distance.euclidean]:
                 p_set = (avg_size, dist_tsh, dist_mtr)
                 param_space.append(p_set)
@@ -350,13 +386,12 @@ def evaluation():
 
         #   fit detector with best performing parameters
         #   test on the testing fold
-        best_params = param_set_score_dict.keys[
+        best_params = param_set_score_dict.keys()[
             np.argmax(param_set_score_dict.values())]
         log.info("Best params for fold %d: %r", test_fold, best_params)
 
         #   do final fold evaluation
-        best_detector = detector_for_params(
-            validation_folds, detector_for_params)
+        best_detector = detector_for_params(validation_folds, best_params)
         score = eval_detector(best_detector, test_fold)
         eval_scores.append(score)
         log.info("Eval score on fold %d: %.2f", test_fold, score)
@@ -370,7 +405,7 @@ def evaluation():
 
 def main():
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     log.info("Detection main, will start detector evaluation")
 
     evaluation()

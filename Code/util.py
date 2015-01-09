@@ -95,6 +95,25 @@ def bbox_overlap(bb1, bb2):
     return x_overlap * y_overlap
 
 
+def bbox_for_mask(mask):
+    """
+    For a boolean mask returns the bounding box (rectangular)
+    of the True values. The bounding box encircles all the
+    True values.
+
+    :param mask: A numpy array of booleans.
+    """
+    vert_projection = np.arange(mask.shape[1])[mask.sum(axis=0) != 0]
+    hori_projection = np.arange(mask.shape[0])[mask.sum(axis=1) != 0]
+    bbox = np.zeros((2, 2), np.int)
+    bbox[0][0] = hori_projection.min()
+    bbox[0][1] = vert_projection.min()
+    bbox[1][0] = hori_projection.max()
+    bbox[1][1] = vert_projection.max()
+
+    return bbox
+
+
 def try_pickle_load(file_name, zip=None):
     """
     Tries to load pickled data from a file with
