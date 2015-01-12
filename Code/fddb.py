@@ -14,7 +14,7 @@ import util
 
 #   root folder of the FDDB database
 #   TODO: change this to "FDDB" for the real deal
-PATH_ROOT = "FDDB"
+PATH_ROOT = "FDDB_subset"
 
 #   root folder for average faces
 AVG_FACE_ROOT = PATH_ROOT + "_avg_faces"

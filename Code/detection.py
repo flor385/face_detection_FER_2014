@@ -210,8 +210,10 @@ class Detector(object):
             self.__bbox_clip(image_gray, b))]
 
         #   if debugging, store images for reviewing
-        if (DEBUG_DIR is not None) & (np.random.randint(0, 25) == 0):
+        if (DEBUG_DIR is not None) & (np.random.randint(0, 10) == 0):
             nr = np.random.randint(0, 1e6)
+            path = "{:06d}_orig.jpg".format(nr)
+            cv2.imwrite(os.path.join(DEBUG_DIR, path), image_RGB)
             path = "{:06d}_mask.jpg".format(nr)
             cv2.imwrite(os.path.join(DEBUG_DIR, path), skin_pixels)
 

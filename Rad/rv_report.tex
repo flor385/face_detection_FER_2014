@@ -284,6 +284,122 @@ sustave strojnog učenja. Koristimo ju za implementaciju PCA i LCA algoritama.
 
 \chapter{Rezultati}
 
+\section{Detekcija lica}
+
+Detekcija lica evaluira se na standardnoj bazi FDDB\footnote{http://vis-www.cs.umass.edu/fddb/}.
+Evaluacija se provodi 10-fold-cross-validacijom. Baza FDDB podjeljena je u 10 disjunktnih
+skupova istih veličina. Evaluacija se provodi slijenim izdvajanjem jednog skupa za testiranje,
+a treniranjem algoritma na ostalih 9 skupova. Treniranje se svodi na pronalazak optimalnih
+parametara (ugnježđenom 9-fold-cross-validacijom) za najbolju detekciju lica. Dobiveni detektor
+se koristi za mjerenje rezultata na testnom skupu.
+
+\subsection{Detekcija kože}
+
+Detekcija kože provodi se u YIQ prostoru boja. Za određivanje tonova koji odgovaraju kože
+rade se histogrami boje (po komponentama) za sve piksele koji su označeni kao dio lica, te
+isto tako za piksele koji nisu dio loca.
+
+Skup slika za treniranje se konvertira u YIQ prostor boja. Potom se koriste oznake FDDB baze
+za određivanje pripadnost piksela klasama (lice, ne-lice). Histogrami dobiveni za čitavu bazu
+FDDB prikazani su na slici \ref{fig:fddb_hist}.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/fddb_YIQ_histogram_all_folds.pdf}
+\caption{Histogrami boje (po YIQ komponentama) za razrede "lice" i "ne-lice", izračunati iz FDDB baze.}
+\label{fig:fddb_hist}
+\end{figure}
+
+Iz histograma se očituje da je razdvojenost razreda prisutna u svim komponentama, ali
+uz snažna preklapanja. Piksel se stoga klasificira kao boja kože (klasa "lice") samo
+ako je unutar raspona označenog za lice svih triju komponenti. Rasponi klase lice se
+za svaku komponentu određuju algoritamski na sljedeći način:
+
+\begin{enumerate}
+  \item{Računa se razlika između histograma za "lice" i "ne-lice"}
+  \item{Pronalazi se maksimum $M$ dobivene razlike}
+  \item{Područje klase "lice" se širi na obje strane od maksimuma}
+  \item{Širenje se zaustavlja kada je razlika manja od $\Delta * M$}
+  \item{Parametar $\Delta$ se određuje eksperimentalno}
+\end{enumerate}
+
+Rezultati opisanog provođenja detekcije piksela kože prikazani su na slici \ref{fig:fddb_masks}.
+Gornji red na slici su originalne fotografije, ispod njih su pripadne maske.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/fddb_masks.jpg}
+\caption{Primjeri detekcije piksela kože na FDDB bazi.}
+\label{fig:fddb_masks}
+\end{figure}
+
+Očituje se par
+reprezentativnih situacija. Na lijevom originalu koža je detektirana samo djelomično, uz
+velik komad krivo detektirane pozadine. Na srednjem originalu skoro uopće nije detektirana
+koža, dok je na desnom detekcija velikim dijelom uspješna. Inspekcija velikog broja dobivenih
+maski ukazuje da je detekcija kože temeljena na boji srednje uspješnosti. Zbog velike varijance
+boje kože (uslijed rasne raznovrsnosti ljudi, različitih uvjeta osvjetljenja i bijele točke
+fotografije), koža se često ne detektira. Istovremeno, pozadina fotografija sasvim legitimno
+može sadržavati piksele boje slične kožinoj, koji su posljedično označeni u maskama kao koža.
+
+U radu \cite{conf/isda/ChandrappaR12}, na kojem se
+temelji ovaj eksperiment, nije opisano koji postupci procesiranja maske se koriste. Stoga smo
+koristili procesiranje koje je davalo najbolje rezultate. Koristili smo algoritme otvaranja i
+dilatacije (koristeći knjižnicu OpenCV). U rezultirajućoj maski smo označili spojena područja
+(koristeći knjižnicu SciPy) te izbacili područja koja veličinom iznimno odstupaju od prosječne
+veličine područja. Cijeli postupak rezultirao je osjetnim povećanjem kvalitete maski.
+
+\subsection{Klasifikacija područja kože kao lica}
+
+Konačni korak detekcije je klasifikacija segmenata maske kao lica ili ne korištenjem
+metrike udaljenosti od "prosječnog" lica, po uzoru na rad \cite{conf/isda/ChandrappaR12}.
+
+
+Možemo primjetiti da su prosječna lica nalik zamućenom licu, snimljenom frontalno u neutralnom osvjetljenju.
+Ovo je u skladu sa očekivanjima, ali otežava usporedbu sa licima koja su snimana iz proizvoljnih kutova,
+u različitim uvjetima osvjetljenja te su ponekad djelomično prekrivena. Dodatni faktor koji otežava usporedbu
+jest to da su maske (proizašle iz detekcije boje kože) vrlo rijetko ograničene isključivo na kožu lica. Često
+se jedan segment maske proteže na vrat, ramena i ruke. Ponekad su lica na fotografiji vrlo blizu jedno drugome
+te se bez sofisticiranijeg segmentiranja smatraju jednim područjem.
+Zbog ovih razloga, kao i već spomenutog problema kvalitetne detekcije boje kože, klasifikacija segmentiranih
+područja kao lica ili ne-lica korištenjem metrike distance od prosječnog dala je loše rezultate. Prosječno
+lice dobiveno za podskup baze prikazano je na slici \ref{fig:fddb_avg_face}.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.4 \textwidth]{raw/avg_face.png}
+\caption{Prosječno lice dobiveno iz FDDB baze (skalirano, u originalu veličine $64 \times 64$ piksela.}
+\label{fig:fddb_avg_face}
+\end{figure}
+
+Primjer konačne klasifikacije prikazan je na slici \ref{fig:fddb_bboxes}. Na tri prikazane fotografije
+označeni su zeleni i crveni pravokutnici. Oba tipa pravokutnika predstavljaju područja određena
+kao potencijalna lica na temelju maske piksela kože. Isječci slike svakog pravokutnika predočeni su
+klasifikatoru baziranom na prosječnom licu. Zeleni pravokutnici su područja koja je klasifikator označio
+kao lica, crveni pravokutnici područja koja je označio kao ne-lica. Vidimo da postoji relativno mala
+konzistentnost klasifikacije, koju smo opazili na većini slika testnog skupa.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/fddb_bboxes.jpg}
+\caption{Primjeri konačne detekcije lica na FDDB bazi.}
+\label{fig:fddb_bboxes}
+\end{figure}
+
+Konačni rezultat evaluacije našeg klasifikatora na FDDB bazi je $14 \pm 0.01\%$ koristeći
+10-fold cross-validaciju. Evaluacija je vršena u skladu sa uputama iz FDDB tehničkog izvještaja
+\cite{fddbTech}. Najuspješniji klasifikatori (u vrijeme pisanja) evaluirani na isti način
+dostižu preciznost preklapanja od preko $50\%$.
+
+\subsection{Detekcija, zaključak}
+
+U radu \cite{conf/isda/ChandrappaR12}, na kojem se bazira naš postupak, mnogi koraci detekcije nisu kvalitetno
+opisani. Nadalje, za evaluaciju se ne koristi neka od standardnih baza,
+već proizvoljna baza koju su pripremili sami autori, bez da su ju javno objavili. Stoga je nemoguće
+rekreirati njihov eksperiment i potvrditi njihove impresivne rezultate. Smatramo da bi bilo poželjno
+da svoj sustav evaluiraju na FDDB bazi (ili nekoj drugoj standardnoj bazi), kako bi se realističnije
+utvrdila kompetitivnost njihovog algoritma postojećim rješenjima.
+
 \chapter{Zaključak}
 Zaključak.
 
