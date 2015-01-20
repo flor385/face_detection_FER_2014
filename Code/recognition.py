@@ -170,6 +170,15 @@ class RecognitionArh2 :
 def main() :
     BASE_IMG_DIR = './FDDB/base_faces'
     rec = RecognitionArh2(BASE_IMG_DIR)
+    picture_paths = os.listdir(BASE_IMG_DIR)
+    picture_paths = filter(lambda x : \
+      os.path.isfile(os.path.join(BASE_IMG_DIR, x)), picture_paths)
+    for f in picture_paths:
+        path = os.path.join(BASE_IMG_DIR, f)
+        simils = rec.get_similarities_for(path, similarity_type="euclid")
+        pos, sim = max(simils, key = lambda x : x[1])
+        print(str(pos) + " " + str(sim))
+    
         
 '''
 architecture 1 code, might be useful
