@@ -180,7 +180,7 @@ def image_face_masks_bboxes(fold):
         FACE_MASK_ROOT, "fddb_face_masks_fold{:02d}.zip".format(fold))
 
     #   try to load and return pickled data
-    masks = util.try_pickle_load(masks_file_name, zip=True)
+    masks = util.try_pickle_load(masks_file_name, zip=False)
     if masks is not None:
         return masks
 
@@ -211,7 +211,7 @@ def image_face_masks_bboxes(fold):
             bboxes[elipse_ind] = bbox
 
     #   store image data for subsequent usage
-    if not util.try_pickle_dump(masks_dict, masks_file_name, zip=True):
+    if not util.try_pickle_dump(masks_dict, masks_file_name, zip=False):
         raise "Failed to pickle face masks"
 
     return masks_dict
@@ -234,7 +234,7 @@ def faces(fold):
         FACE_ONLY_ROOT, "fddb_facesonly_fold_{:02d}.zip".format(fold))
 
     #   try to load and return pickled data
-    face_images = util.try_pickle_load(faces_file_name, zip=True)
+    face_images = util.try_pickle_load(faces_file_name, zip=False)
     if face_images is not None:
         return face_images
 
@@ -269,7 +269,7 @@ def faces(fold):
             face_images.append(face_img)
 
     #   store image data for subsequent usage
-    if not util.try_pickle_dump(face_images, faces_file_name, zip=True):
+    if not util.try_pickle_dump(face_images, faces_file_name, zip=False):
         raise "Failed to pickle face images"
 
     return face_images
