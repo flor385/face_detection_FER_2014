@@ -182,7 +182,7 @@ class Detector(object):
         masks = [markers == c for c in range(1, component_count + 1)]
         return [util.bbox_for_mask(m) for m in masks if m.sum() > 0]
 
-    def detect(self, image_RGB):
+    def detect(self, image_rgb):
         """
         Main detection function. Processes the given image, detects faces
         and returns a list of bouding boxes for found faces. Bounding boxes
@@ -193,11 +193,11 @@ class Detector(object):
         """
 
         #   convert image to YIQ
-        image_YIQ = util.rgb_to_yiq(image_RGB)
+        image_yiq = util.rgb_to_yiq(image_rgb)
 
         #   do skin color detection
-        skin_pixels = (image_YIQ > self.yiq_skin_ranges[:, 0]) & \
-            (image_YIQ < self.yiq_skin_ranges[:, 1])
+        skin_pixels = (image_yiq > self.yiq_skin_ranges[:, 0]) & \
+            (image_yiq < self.yiq_skin_ranges[:, 1])
         skin_pixels = skin_pixels.all(axis=2).astype(np.uint8) * 255
 
         #   get bounding boxes for the skin pixel mask
@@ -205,7 +205,7 @@ class Detector(object):
 
         #   finally see what the face classifier says
         #   note that the classifier works on the grayscale image made from RGB
-        image_gray = np.mean(image_RGB, axis=2).astype(image_RGB.dtype)
+        image_gray = np.mean(image_rgb, axis=2).astype(image_rgb.dtype)
         bboxes_filtered = [b for b in bboxes if self.face_classifier.is_face(
             self.__bbox_clip(image_gray, b))]
 
@@ -213,12 +213,12 @@ class Detector(object):
         if (DEBUG_DIR is not None) & (np.random.randint(0, 10) == 0):
             nr = np.random.randint(0, 1e6)
             path = "{:06d}_orig.jpg".format(nr)
-            cv2.imwrite(os.path.join(DEBUG_DIR, path), image_RGB)
+            cv2.imwrite(os.path.join(DEBUG_DIR, path), image_rgb)
             path = "{:06d}_mask.jpg".format(nr)
             cv2.imwrite(os.path.join(DEBUG_DIR, path), skin_pixels)
 
             #   draw the boxes over an image
-            im = np.array(image_RGB)
+            im = np.array(image_rgb)
             red = (128, 128, 255)
             for bbox in bboxes:
                 im[bbox[0][0]:bbox[1][0], [bbox[0][1], bbox[1][1]]] = red
@@ -238,8 +238,12 @@ class Detector(object):
 def match_score(bboxes_detected, bboxes_true, masks):
     """
     Calculates the score for given detection parameters.
-    Returns the ratio between all intersetcions and
-    all unions.
+    Continuous and discrete score is calculated. Continuous
+    score is the ratio between detection/truth intersections
+    and their unions. Discrete score is the proportion of faces
+    that were detected with more then 0.5 intersection.
+    Returns a tuple (continuous_score, discrete_precision,
+        discrete_recall).
 
     :param bboxes_detected: Bounding boxes of faces
         detected in an image.
@@ -251,6 +255,8 @@ def match_score(bboxes_detected, bboxes_true, masks):
     #   sum of intersections and unions
     union_total = 0.0
     intersection_total = 0.0
+    #   number of faces detected by >0.5 overlap
+    discrete_total = 0
 
     #   match detected bboxes to known truths
     #   bboxes_matched is a list of bboxes corresponding
@@ -290,12 +296,20 @@ def match_score(bboxes_detected, bboxes_true, masks):
         #   append the metrics to total scores
         union_total += union
         intersection_total += intersection
+        if (intersection / float(union)) > 0.01:
+            discrete_total += 1
 
     #   also add non-matched detected to scoring
     for bb in bboxes_detected:
         union_total += (bbox[1][0] - bbox[0][0]) * (bbox[1][1] - bbox[0][1])
 
-    return intersection_total / union_total
+    continuous_score = intersection_total / union_total
+    if len(bboxes_detected) == 0:
+        discrete_precision = 0
+    else:
+        discrete_precision = discrete_total / float(len(bboxes_detected))
+    discrete_recall = discrete_total / float(len(bboxes_true))
+    return (continuous_score, discrete_precision, discrete_recall)
 
 
 def detector_for_params(folds, param_set):
@@ -331,7 +345,7 @@ def evaluation():
     #   on parameter values of all parameter types
     param_space = []
     for avg_size in [32]:
-        for dist_tsh in [7.0, 10.0]:
+        for dist_tsh in [10.0]:
             for dist_mtr in [scipy.spatial.distance.euclidean]:
                 p_set = (avg_size, dist_tsh, dist_mtr)
                 param_space.append(p_set)
@@ -341,19 +355,28 @@ def evaluation():
         A helper function that returns detection
         scoring on given FDDB folds.
         """
-        scores = []
+        continuous_scores = []
+        discrete_precisions = []
+        discrete_recalls = []
         for img_path, (masks, bboxes_true) in \
                 fddb.image_face_masks_bboxes(folds).items():
 
             #   run the image through the detector and score it
             bboxes_detected = detector.detect(cv2.imread(img_path, 1))
-            scores.append(match_score(bboxes_detected, bboxes_true, masks))
+            c_score, d_precision, d_recall = match_score(
+                bboxes_detected, bboxes_true, masks)
+            continuous_scores.append(c_score)
+            discrete_precisions.append(d_precision)
+            discrete_recalls.append(d_recall)
 
-        return np.mean(scores)
+        return (np.mean(continuous_scores), np.mean(discrete_precisions),
+                np.mean(discrete_recalls))
 
     #   outer fold for evaluation purposes
     all_folds = range(1, 11)
-    eval_scores = []
+    cont_eval_scores = []
+    disc_eval_precisions = []
+    disc_eval_recalls = []
     for test_fold in all_folds:
         log.info("Testing on fold %d", test_fold)
 
@@ -381,7 +404,7 @@ def evaluation():
 
                 #   and evaluate it on the current validation fold
                 validation_fold_scores.append(
-                    eval_detector(detector, validation_fold))
+                    eval_detector(detector, validation_fold)[0])
 
             #   remember total score for current param set
             param_set_score_dict[param_set] = np.mean(validation_fold_scores)
@@ -394,15 +417,22 @@ def evaluation():
 
         #   do final fold evaluation
         best_detector = detector_for_params(validation_folds, best_params)
-        score = eval_detector(best_detector, test_fold)
-        eval_scores.append(score)
-        log.info("Eval score on fold %d: %.2f", test_fold, score)
+        c_score, d_prec, d_recall = eval_detector(best_detector, test_fold)
+        cont_eval_scores.append(c_score)
+        disc_eval_precisions.append(d_prec)
+        disc_eval_recalls.append(d_recall)
+        log.info("Eval score on fold %d: continuous: %.2f, discrete precision"
+                 ": %.2f, discrete recall: %.2f",
+                 test_fold, c_score, d_prec, d_recall)
 
     #   report cross-validation results
     log.info("\n\nFinal evaluation results:")
-    log.info("Best scores on all folds: %r", eval_scores)
-    log.info("Average score: %.2f, +- %.2f",
-             np.mean(eval_scores), np.std(eval_scores))
+    log.info("Continuous score: %.2f, +- %.2f",
+             np.mean(cont_eval_scores), np.std(cont_eval_scores))
+    log.info("Discrete precision: %.2f, +- %.2f",
+             np.mean(disc_eval_precisions), np.std(disc_eval_precisions))
+    log.info("Discrete recall: %.2f, +- %.2f",
+             np.mean(disc_eval_recalls), np.std(disc_eval_recalls))
 
 
 def main():
