@@ -367,7 +367,7 @@ lice dobiveno za podskup baze prikazano je na slici \ref{fig:fddb_avg_face}.
 
 \begin{figure}[!htb]
 \centering
-\includegraphicstest_res_seq_len{raw/avg_face.png}
+\includegraphics{raw/avg_face.png}
 \caption{Prosječno lice dobiveno iz FDDB baze (skalirano, u originalu veličine $64 \times 64$ piksela.}
 \label{fig:fddb_avg_face}
 \end{figure}
@@ -386,18 +386,23 @@ konzistentnost klasifikacije, koju smo opazili na većini slika testnog skupa.
 \label{fig:fddb_bboxes}
 \end{figure}
 
-Konačni rezultat evaluacije našeg klasifikatora na FDDB bazi je $14 \pm 0.01\%$ koristeći
-10-fold cross-validaciju. Evaluacija je vršena u skladu sa uputama iz FDDB tehničkog izvještaja
-\cite{fddbTech}. Najuspješniji klasifikatori (u vrijeme pisanja) evaluirani na isti način
-dostižu preciznost preklapanja od preko $50\%$.
+Detektor lica se evaluira koristeći 10-fold cross-validaciju (standard predložen
+u tehničkom izvještaju FDDB baze). Evaluiraju se dvije mjere uspješnosti. Prva mjera
+je "kontinuirani" rezultat koji se računa kao omjer preklapanja detektiranih lica
+i označenih. Rezultat takve evaluacije je $14 \pm 0.01\%$ preklapanja. Najuspješniji
+detektori trenutno postižu oko $45\%$ \cite{fddbTech}. Druga mjera evaluacije je "diskretni" rezultat
+koji mjeri broj detektiranih lica, pri čemu se detekcija smatra uspješnom ako je preklapanje
+oznake i detekcije veća od $50\%$. Naš detektor uspješno locira $35\%$ lica, dok trenutno
+najuspješniji detektori lociraju oko $65\%$. Pri tome je preciznost našeg detektora
+(broj točnih prepoznavanja naspram broja svih detekcija) $13\%$.
 
 \subsection{Detekcija, zaključak}
 
 U radu \cite{conf/isda/ChandrappaR12}, na kojem se bazira naš postupak, mnogi koraci detekcije nisu kvalitetno
-opisani. Nadalje, za evaluaciju se ne koristi neka od standardnih baza,
-već proizvoljna baza koju su pripremili sami autori, bez da su ju javno objavili. Stoga je nemoguće
-rekreirati njihov eksperiment i potvrditi njihove impresivne rezultate. Smatramo da bi bilo poželjno
-da svoj sustav evaluiraju na FDDB bazi (ili nekoj drugoj standardnoj bazi), kako bi se realističnije
+opisani. Za evaluaciju se ne koristi neka od standardnih baza,
+već neobjavljena baza koju su pripremili sami autori. Stoga je nemoguće
+rekreirati njihov eksperiment i potvrditi impresivne rezultate. Smatramo da bi bilo poželjno
+da autori svoj sustav evaluiraju na FDDB (ili nekoj drugoj standardnoj) bazi, kako bi se realističnije
 utvrdila kompetitivnost njihovog algoritma postojećim rješenjima.
 
 \chapter{Zaključak}
