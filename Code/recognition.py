@@ -24,7 +24,9 @@ class RecognitionArh2 :
         self.__approximate_dim_num = approximate_dim_num
         picture_paths = os.listdir(images_training_path)
         picture_paths = filter(lambda x : \
-            os.path.isfile(os.path.join(images_training_path, x)), picture_paths)
+            os.path.isfile(os.path.join(images_training_path, x)) \
+            and unicode.endswith(x, ".pgm"), picture_paths)
+        picture_paths.sort()
         flattened_images = []
         sizes = []
         for f in picture_paths:
@@ -168,11 +170,12 @@ class RecognitionArh2 :
     
 
 def main() :
-    BASE_IMG_DIR = './FDDB/base_faces'
+    BASE_IMG_DIR = './FDDB/train_set'.decode('utf-8')
     rec = RecognitionArh2(BASE_IMG_DIR)
     picture_paths = os.listdir(BASE_IMG_DIR)
     picture_paths = filter(lambda x : \
-      os.path.isfile(os.path.join(BASE_IMG_DIR, x)), picture_paths)
+      os.path.isfile(os.path.join(BASE_IMG_DIR, x)) \
+      and unicode.endswith(x, ".pgm"), picture_paths)
     for f in picture_paths:
         path = os.path.join(BASE_IMG_DIR, f)
         simils = rec.get_similarities_for(path, similarity_type="euclid")
