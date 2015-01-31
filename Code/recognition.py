@@ -23,6 +23,7 @@ class RecognitionArh2 :
         self.__equalize_hist = equalize_hist
         self.__images_training = images_training_path
         self.__approximate_dim_num = approximate_dim_num
+        self.__face_index_lst = self.__readFacesOrder(os.path.join(images_training_path, "train_set.nfo"))
         picture_paths = os.listdir(images_training_path)
         picture_paths = filter(lambda x : \
             os.path.isfile(os.path.join(images_training_path, x)) \
@@ -129,6 +130,21 @@ class RecognitionArh2 :
             img = row.reshape(sizes[row_ind])
             cv2.imwrite(os.path.join(path, "pca_trans"+str(row_ind)+".pgm"), img)
             
+    def __readFacesOrder(self, train_set_info_path):
+        """
+        Helper function for reading the training set description. The description
+        is really a list of integers which represent to which person does the
+        face on that specific index in the set belong.
+        """
+        f = open(train_set_info_path, "r")
+        face_index_lst = []
+        for line in f :
+            line = line.strip()
+            if line != "" :
+                face_index_lst.append(int(line))
+        f.close()
+        return face_index_lst
+            
     def __write_reconstructed_images(self, path, sizes) : 
         """
         Helper (debug) method for writing the images reconstructed from learned
@@ -146,7 +162,8 @@ class RecognitionArh2 :
     def get_similarities_for(self, image_path, similarity_type="cosine") :
         """
         Central method of this class. For a new given image path returns
-        a list of tuples [(index, similarity)] which represents the similarity
+        a list of triples [(index, similarity, person_index)] 
+        which represents the similarity
         between the new image and the images saved/learned.
         
         Similarity can be neative so the rule "the more positive the similarity
@@ -170,8 +187,9 @@ class RecognitionArh2 :
             elif (similarity_type == "euclid"):
                 simil = np.divide(1, 1 + euclidean(transformed, original))
             similarities.append(simil)
-            
-        return zip(xrange(0, len(similarities)), similarities)
+        pic_indices = range(0, len(similarities))
+        fold_indices = map(lambda x : self.__face_index_lst[x], pic_indices)
+        return zip(pic_indices, similarities, fold_indices)
     
 
 def main() :

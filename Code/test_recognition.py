@@ -35,8 +35,8 @@ def testOnTheDatabase(train_set_path, database_path, equalize, simil_type) :
         num_faces_global += len(files) - from_train
         for fil in files :
             simils = rec.get_similarities_for(fil, similarity_type=simil_type)
-            pos, sim = max(simils, key = lambda x : x[1])
-            if (face_index_lst[pos] == indfold) :
+            pos, sim, fold = max(simils, key = lambda x : x[1])
+            if (fold == indfold) :
                 success += 1
         print("Face " + str(indfold) + ": " + str(success - from_train) + "/" +\
         str(len(files) - from_train))
