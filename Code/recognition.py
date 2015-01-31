@@ -12,7 +12,7 @@ class RecognitionArh2 :
     between a new picture and a stored train set.
     """
     
-    def __init__(self, images_training_path, approximate_dim_num = 4096) :
+    def __init__(self, images_training_path, approximate_dim_num = 4096, equalize_hist = False) :
         """
         Used for train set initialization. Takes a path to the directory where
         the initial faces for training are written and an approximate number of features
@@ -20,17 +20,22 @@ class RecognitionArh2 :
         """
         
         #picture reading, resizing, flattening and normalization
+        self.__equalize_hist = equalize_hist
         self.__images_training = images_training_path
         self.__approximate_dim_num = approximate_dim_num
         picture_paths = os.listdir(images_training_path)
         picture_paths = filter(lambda x : \
-            os.path.isfile(os.path.join(images_training_path, x)), picture_paths)
+            os.path.isfile(os.path.join(images_training_path, x)) \
+            and unicode.endswith(x, ".pgm"), picture_paths)
+        picture_paths.sort()
         flattened_images = []
         sizes = []
         for f in picture_paths:
             path = os.path.join(images_training_path, f)
             img = cv2.imread(path,cv2.IMREAD_GRAYSCALE)
             img = self.__resize_img(img, approximate_dim_num)
+            if (self.__equalize_hist) :
+                img = cv2.equalizeHist(img)
             sizes.append(img.shape)
             flattened = np.array(img.flatten()) / 255.0 #normalization in a [0-1] range
             flattened_images.append(flattened)
@@ -150,6 +155,8 @@ class RecognitionArh2 :
         """
         img = cv2.imread(image_path,cv2.IMREAD_GRAYSCALE)
         img = self.__resize_img(img, self.__approximate_dim_num)
+        if (self.__equalize_hist) :
+            img = cv2.equalizeHist(img)
         flattened = np.array(img.flatten()) / 255.0
         flattened -= self.__pixel_means
         pca_repres = self.__pca.transform(flattened)
@@ -168,11 +175,12 @@ class RecognitionArh2 :
     
 
 def main() :
-    BASE_IMG_DIR = './FDDB/base_faces'
+    BASE_IMG_DIR = './FDDB/train_set'.decode('utf-8')
     rec = RecognitionArh2(BASE_IMG_DIR)
     picture_paths = os.listdir(BASE_IMG_DIR)
     picture_paths = filter(lambda x : \
-      os.path.isfile(os.path.join(BASE_IMG_DIR, x)), picture_paths)
+      os.path.isfile(os.path.join(BASE_IMG_DIR, x)) \
+      and unicode.endswith(x, ".pgm"), picture_paths)
     for f in picture_paths:
         path = os.path.join(BASE_IMG_DIR, f)
         simils = rec.get_similarities_for(path, similarity_type="euclid")
