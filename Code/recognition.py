@@ -12,7 +12,7 @@ class RecognitionArh2 :
     between a new picture and a stored train set.
     """
     
-    def __init__(self, images_training_path, approximate_dim_num = 4096, equalize_hist = False) :
+    def __init__(self, images_training_path, approximate_dim_num = 4096, equalize_hist = True) :
         """
         Used for train set initialization. Takes a path to the directory where
         the initial faces for training are written and an approximate number of features

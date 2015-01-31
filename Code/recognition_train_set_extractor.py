@@ -21,20 +21,19 @@ def extractTrainSamples(dbPath, numSamplesPerFace, outDir) :
         os.mkdir(outDir)
     pers_ind = 0
     file_face_belong = []
+    fl_indices = indicesToTake(numSamplesPerFace)
     for fo in folders :
         fold = os.path.join(dbPath, fo)
         files = filter(lambda f : os.path.isfile(os.path.join(fold, f)) and \
         unicode.endswith(f, ".pgm") and not unicode.endswith(f, "Ambient.pgm"), \
         os.listdir(fold))
-        takeEvery = float(len(files)) / numSamplesPerFace
-        ind = 0.
-        while ind <= (len(files) - 1) :
-            f = files[int(ind)]
+        indices = map(lambda x : int(round(x * (len(files) - 1))), fl_indices)
+        for ind in indices :
+            f = files[ind]
             file_face_belong.append((f, pers_ind))
             fout = os.path.join(outDir, f)
             fin = os.path.join(dbPath, fo, f)
             shutil.copy2(fin, fout)
-            ind += takeEvery
         pers_ind += 1
     file_face_belong.sort(key = lambda x : x[0])
     f = open(os.path.join(outDir, "train_set.nfo"), "w")
@@ -42,7 +41,29 @@ def extractTrainSamples(dbPath, numSamplesPerFace, outDir) :
         f.write(str(index)+"\n")
     f.close()
     
+def indicesToTake(numFaces) :
+    if (numFaces == 1) :
+        return [0.0]
+    elif (numFaces == 2) :
+        return [0.0, 1.0]
+        
+    fl_indices = [0.0, 1.0]
+    faces_took = 2
+    curr_gap = 0.5
+    prev_gap = 1.0
+    while (faces_took < numFaces) :
+        curr_num = curr_gap
+        while (curr_num < 1.0):
+            fl_indices.append(curr_num)
+            curr_num += prev_gap
+            faces_took += 1
+            if (faces_took == numFaces):
+                break
+        prev_gap = curr_gap
+        curr_gap /= 2
+    fl_indices.sort()
+    return fl_indices
 
 if __name__ == "__main__":
     extractTrainSamples("./FDDB/CroppedYale".decode('utf-8'),\
-    6, "./FDDB/train_set")
+    11, "./FDDB/train_set")
