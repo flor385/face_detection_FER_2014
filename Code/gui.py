@@ -29,7 +29,8 @@ class RvGui(tk.Frame):
     self.pic = StringVar()
     tk.Label(bottomFrame, text="Klasifikacija").pack()
     tk.Entry(bottomFrame, state='disabled', textvariable=self.pic).pack(**opt1)
-    self.buttonChooseImage = tk.Button(bottomFrame, text='Odaberi sliku', state='disabled', command=self.askopenfilename).pack(**opt1)
+    self.buttonChooseImage = tk.Button(bottomFrame, text='Odaberi sliku', state='disabled', command=self.askopenfilename)
+    self.buttonChooseImage.pack(**opt1)
     self.buttonClassify = tk.Button(bottomFrame, text='Klasificiraj sliku', state='disabled', command=self.classify)
     self.buttonClassify.pack(**opt1)
 
@@ -72,7 +73,7 @@ class RvGui(tk.Frame):
       
 
   def classify(self):
-    self.recognition.get_similarities_for(self.pic)
+    self.recognition.get_similarities_for(self.pic.get())
 
 if __name__=='__main__':
   root = tk.Tk()
