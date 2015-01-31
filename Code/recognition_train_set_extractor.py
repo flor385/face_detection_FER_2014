@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 29 23:00:35 2015
-
-@author: Edi
-"""
 
 import os
 import shutil
 
 def extractTrainSamples(dbPath, numSamplesPerFace, outDir) :
+    """
+    For every person in the database takes numSamplesPerFace images and
+    copies them in the outDir (the directory of the training set). Every k-th
+    image is taken where k = (num of images) / numSamplesPerFace. A training
+    set info is also generated with filename 'train_set.nfo' which contains
+    the index of the person an image in the training set sorted by file names
+    refers to (used for testing purposes).
+    """
     folders = filter(lambda p : os.path.isdir(os.path.join(dbPath, p)), os.listdir(dbPath))
+    #deletes the folder and starts fresh
     if (not os.path.isdir(outDir)) :
         os.mkdir(outDir)
     else :
@@ -41,4 +45,4 @@ def extractTrainSamples(dbPath, numSamplesPerFace, outDir) :
 
 if __name__ == "__main__":
     extractTrainSamples("./FDDB/CroppedYale".decode('utf-8'),\
-    3, "./FDDB/train_set")
+    6, "./FDDB/train_set")

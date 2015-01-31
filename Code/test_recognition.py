@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jan 30 00:36:57 2015
-
-@author: Edi
-"""
 
 import recognition
 import os
 
 def testOnTheDatabase(train_set_path, database_path) :
+    """
+    Learns the architecture 2 using the training set (folder with pictures and a
+    description file) with train_set_path and tests it on the entire cropped database.
+    For every person/face in the database the number of successful recognitions is
+    printed. At the end the precision on the database is printed.
+    """
     BASE_IMG_DIR = train_set_path
-    rec = recognition.RecognitionArh2(BASE_IMG_DIR)
+    #learn model
+    rec = recognition.RecognitionArh2(BASE_IMG_DIR, equalize_hist = True)
+    #read training set description
     face_index_lst = readFacesOrder(os.path.join(train_set_path, "train_set.nfo"))
     print("TRAINED")
     folders = filter(lambda p : os.path.isdir(os.path.join(database_path, p)),\
@@ -36,6 +39,11 @@ def testOnTheDatabase(train_set_path, database_path) :
     print("Global precision: " + str(float(succ_global) / num_faces_global))
         
 def readFacesOrder(train_set_info_path):
+    """
+    Helper function for reading the training set description. The description
+    is really a list of integers which represent to which person does the
+    face on that specific index in the set belong.
+    """
     f = open(train_set_info_path, "r")
     face_index_lst = []
     for line in f :
