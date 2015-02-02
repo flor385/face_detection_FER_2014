@@ -1,0 +1,40 @@
+\select@language {croatian}
+\contentsline {chapter}{\numberline {1}Uvod i problematika}{1}
+\contentsline {section}{\numberline {1.1}Detekcija lica}{1}
+\contentsline {section}{\numberline {1.2}Prepoznavanje lica}{1}
+\contentsline {chapter}{\numberline {2}Pregled postoje\IeC {\'c}ih rje\IeC {\v s}enja}{2}
+\contentsline {section}{\numberline {2.1}Detekcija lica}{2}
+\contentsline {subsection}{\numberline {2.1.1}Detekcija bazirana na zna\IeC {\v c}ajkama}{2}
+\contentsline {subsubsection}{Modeli aktivnih oblika}{2}
+\contentsline {subsubsection}{Detekcija temeljena na boji}{3}
+\contentsline {subsection}{\numberline {2.1.2}Detekcija bazirana na slici}{3}
+\contentsline {subsubsection}{Neuronske mre\IeC {\v z}e}{3}
+\contentsline {subsubsection}{Metode linearnih podprostora}{4}
+\contentsline {subsubsection}{Statisti\IeC {\v c}ki pristupi}{4}
+\contentsline {section}{\numberline {2.2}Raspoznavanje lica}{4}
+\contentsline {section}{\numberline {2.3}Primjer primjene: Bostonski maraton}{5}
+\contentsline {chapter}{\numberline {3}Predlo\IeC {\v z}ena implementacija}{7}
+\contentsline {section}{\numberline {3.1}Detekcija lica}{7}
+\contentsline {section}{\numberline {3.2}Prepoznavanje lica}{9}
+\contentsline {subsection}{\numberline {3.2.1}ICA}{9}
+\contentsline {subsubsection}{Arhitektura I}{10}
+\contentsline {subsubsection}{Arhitektura II}{10}
+\contentsline {section}{\numberline {3.3}Kori\IeC {\v s}tene baze}{11}
+\contentsline {subsubsection}{Detekcija lica}{12}
+\contentsline {subsubsection}{Prepoznavanje}{12}
+\contentsline {section}{\numberline {3.4}Platforma programske implementacije}{12}
+\contentsline {subsubsection}{NumPy}{13}
+\contentsline {subsubsection}{OpenCV}{13}
+\contentsline {subsubsection}{scikit-learn}{13}
+\contentsline {chapter}{\numberline {4}Rezultati}{14}
+\contentsline {section}{\numberline {4.1}Detekcija lica}{14}
+\contentsline {subsection}{\numberline {4.1.1}Detekcija ko\IeC {\v z}e}{14}
+\contentsline {subsection}{\numberline {4.1.2}Klasifikacija podru\IeC {\v c}ja ko\IeC {\v z}e kao lica}{16}
+\contentsline {subsection}{\numberline {4.1.3}Detekcija, zaklju\IeC {\v c}ak}{17}
+\contentsline {section}{\numberline {4.2}Prepoznavanje lica}{18}
+\contentsline {subsection}{\numberline {4.2.1}Smanjivanje dimenzionalnosti vektora zna\IeC {\v c}ajki PCA algoritmom}{18}
+\contentsline {subsection}{\numberline {4.2.2}Prepoznavanje lica ICA algoritmom}{19}
+\contentsline {subsection}{\numberline {4.2.3}Prepoznavanje, zaklju\IeC {\v c}ak}{20}
+\contentsline {chapter}{\numberline {5}Zaklju\IeC {\v c}ak}{21}
+\contentsline {chapter}{\numberline {6}Literatura}{22}
+\contentsline {chapter}{\numberline {7}Sa\IeC {\v z}etak}{24}

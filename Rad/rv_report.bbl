@@ -1,0 +1,112 @@
+\begin{thebibliography}{10}
+
+\bibitem{CVIU2001:Hjelmas}
+Erik Hjelm{\aa}s and Boon~Kee Low.
+\newblock Face detection: {A} survey.
+\newblock {\em Computer Vision and Image Understanding}, 83(3):236--274,
+  September 2001.
+
+\bibitem{Viola04robustreal-time}
+Paul Viola and Michael Jones.
+\newblock Robust real-time face detection.
+\newblock {\em International Journal of Computer Vision}, 57:137--154, 2004.
+
+\bibitem{prabhu_utsav_facialrecog}
+Prabhu Utsav and Keshav Seshadri.
+\newblock Facial recognition using active shape models, local patches and
+  support vector machines.
+
+\bibitem{Senior:2002:FDC:513073.513082}
+Andrew Senior, Rein-Lien Hsu, Mohamed~Abdel Mottaleb, and Anil~K. Jain.
+\newblock Face detection in color images.
+\newblock {\em IEEE Trans. Pattern Anal. Mach. Intell.}, 24(5):696--706, May
+  2002.
+
+\bibitem{conf/isda/ChandrappaR12}
+D.~N. Chandrappa and M.~Ravishankar.
+\newblock Automatic face recognition in a crowded scene using multi layered
+  clutter filtering and independent component analysis.
+\newblock In Ajith Abraham, Albert~Y. Zomaya, Sebastián Ventura, Ronald Yager,
+  Václav Snásel, Azah~Kamilah Muda, and Philip Samuel, editors, {\em ISDA},
+  pages 552--556. IEEE, 2012.
+
+\bibitem{Rowley98neuralnetwork-based}
+Henry~A. Rowley, Student Member, Shumeet Baluja, and Takeo Kanade.
+\newblock Neural network-based face detection.
+\newblock {\em IEEE Transactions On Pattern Analysis and Machine intelligence},
+  20:23--38, 1998.
+
+\bibitem{zhang2014improving}
+Cha Zhang and Zhengyou Zhang.
+\newblock Improving multiview face detection with multi-task deep convolutional
+  neural networks.
+\newblock In {\em Applications of Computer Vision (WACV), 2014 IEEE Winter
+  Conference on}, pages 1036--1041. IEEE, 2014.
+
+\bibitem{Li04floatboostlearning}
+Stan~Z. Li and ZhenQiu Zhang.
+\newblock Floatboost learning and statistical face detection.
+\newblock {\em IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE},
+  26(9):2004, 2004.
+
+\bibitem{Draper:2003:RFP:950135.950141}
+Bruce~A. Draper, Kyungim Baek, Marian~Stewart Bartlett, and J.~Ross Beveridge.
+\newblock Recognizing faces with pca and ica.
+\newblock {\em Comput. Vis. Image Underst.}, 91(1-2):115--137, July 2003.
+
+\bibitem{5539992}
+Zhimin Cao, Qi~Yin, Xiaoou Tang, and Jian Sun.
+\newblock Face recognition with learning-based descriptor.
+\newblock In {\em Computer Vision and Pattern Recognition (CVPR), 2010 IEEE
+  Conference on}, pages 2707--2714, June 2010.
+
+\bibitem{Huang_labeledfaces}
+Gary~B. Huang, Manu Ramesh, Tamara Berg, and Erik Learned-miller.
+\newblock Labeled faces in the wild: A database for studying face recognition
+  in unconstrained environments.
+
+\bibitem{Lu_imageanalysis}
+Xiaoguang Lu.
+\newblock Image analysis for face recognition.
+
+\bibitem{barr2014effectiveness}
+Jeremiah~R Barr, Kevin~W Bowyer, and Patrick~J Flynn.
+\newblock The effectiveness of face detection algorithms in unconstrained crowd
+  scenes.
+\newblock In {\em Applications of Computer Vision (WACV), 2014 IEEE Winter
+  Conference on}, pages 1020--1027.
+
+\bibitem{Viola01rapidobject}
+Paul Viola and Michael Jones.
+\newblock Rapid object detection using a boosted cascade of simple features.
+\newblock pages 511--518, 2001.
+
+\bibitem{Klontz13acase}
+Joshua~C. Klontz and Anil~K. Jain.
+\newblock A case study on unconstrained facial recognition using the boston
+  marathon bombings suspects, 2013.
+
+\bibitem{rahman_face_det_gender_svm}
+Md. Abul~Bashar Md. Hafizur~Rahman, Suman~Chowdhury.
+\newblock An automatic face detection and gender classification from color
+  images using support vector machine.
+
+\bibitem{Elad00patterndetection}
+Michael Elad, Yacov Hel-or, and Renato Keshet.
+\newblock Pattern detection using maximal rejection classifier.
+\newblock In {\em In Int. Workshop on Visual Form}, pages 28--30, 2000.
+
+\bibitem{fddbTech}
+Vidit Jain and Erik Learned-Miller.
+\newblock Fddb: A benchmark for face detection in unconstrained settings.
+\newblock Technical Report UM-CS-2010-009, University of Massachusetts,
+  Amherst, 2010.
+
+\bibitem{GeBeKr01}
+A.S. Georghiades, P.N. Belhumeur, and D.J. Kriegman.
+\newblock From few to many: Illumination cone models for face recognition under
+  variable lighting and pose.
+\newblock {\em IEEE Trans. Pattern Anal. Mach. Intelligence}, 23(6):643--660,
+  2001.
+
+\end{thebibliography}

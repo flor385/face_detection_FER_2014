@@ -405,6 +405,66 @@ rekreirati njihov eksperiment i potvrditi impresivne rezultate. Smatramo da bi b
 da autori svoj sustav evaluiraju na FDDB (ili nekoj drugoj standardnoj) bazi, kako bi se realističnije
 utvrdila kompetitivnost njihovog algoritma postojećim rješenjima.
 
+\section{Prepoznavanje lica}
+
+Prepoznavanje lica evaluirano je na Yale\footnote{http://vision.ucsd.edu/content/yale-face-database} bazi podataka. Ona se sastoji od slika 39 osoba, s tim da je za svaka osoba predstavljena sa 64 slike. Slike se razlikuju po kutu izvora svjetlosti u odnosu na os kamere. Slika naziva yaleB03 \textunderscore P00A-060E+20.pgm prikazuje osobu B03 sa izvorom svjetlosti zarotiranim za kut od -60 stupnjeva po osi x i 20 stupnjeva po osi y u odnosu na kameru. Koristena je baza sa izdvojenim licima (\textit{eng. cropped data base}). Primjeri slika iz baze mogu se vidjeti na slici \ref{fig:cropped_images}. 
+
+\begin{figure}[!htb]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{raw/yaleB03_P00A+000E+00.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{raw/yaleB03_P00A-060E+20.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{raw/yaleB03_P00A-110E+40.jpg}
+\endminipage
+\caption{Lice sa različitim rotacijama izvora svjetlosti.}\label{fig:cropped_images}
+\end{figure}
+
+Baza je podijeljena na skup za učenje i skup za ispitivanje. Skup za učenje sastavljen je n slučajno odbranih slika svake osobe, gdje je n promjenjivi parametar. Potreba za uzimanjem više referentnih slika svake osobe javila se zbog raznovrsnosti slika u bazi. Na slikama \ref{fig:euc_cos_comp} i \ref{fig:eq_noneq_comp} može se vidjeti utjecaj broja n na preciznost klasifikacije.
+
+\subsection{Smanjivanje dimenzionalnosti vektora značajki PCA algoritmom}
+
+Za smanjivanje broja značajki koristi se PCA algoritam. Ovim korakom iz slike izbacujemo PCA značajke male frekvencije za koje se predpostavlja da pripadaju šumu. Također, smanjivanje dimenzoinalnosti potrebno je jer smanjuje vrijeme generiranja ICA značajki, čime se postiže značajno ubrzanje učenja i klasifikacije. Uzima se broj najrelevantnijih značajki takav da suma njihovih frekvencija zajedno cini $99\%$.
+
+\subsection{Prepoznavanje lica ICA algoritmom}
+
+Prepoznavanje lica provodi se tako da se nad skupom za učenje provede ICA algoritam. Dobiveni vektori značajki nazivaju se baznim slikama, čiji se primjeri mogu vidjeti na slici \ref{fig:base_images}. Za sliku lica koja se klasificira izračunava se ICA vektor značajki. Na temelju njega izračunava se mjera sličnosti slike sa svakom od baznih slika. Mjera sličnosti može se temeljiti na kosinusnoj ili euklidskoj udaljenosti. Slika se klasificira u razred bazne slike s najvećom sličnošću. Najveća dobivena preciznost iznosi $97.6\%$ za testni skup sa n = 15 slika za svaku osobu. 
+
+\begin{figure}[!htb]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{raw/base4.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{raw/base14.jpg}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{raw/base88.jpg}
+\endminipage
+\caption{Bazne slike lica.}\label{fig:base_images}
+\end{figure}
+
+Na slici \ref{fig:euc_cos_comp} možemo vidjeti preciznost za euklidsku i kosinusnu mjeru sličnosti u odnosu na veličinu skupa za učenje, n.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/euc_cos_comp.png}
+\caption{Preciznost klasifikacije za euklidsku i kosinusnu mjeru sličnosti u odnosu na veličinu skupa za učenje.}
+\label{fig:euc_cos_comp}
+\end{figure}
+
+U radu \citep{conf/isda/ChandrappaR12} normalizacija histograma ulazne slike koristi se kao korak predprocesiranja koji poboljšava klasifikaciju. Na slici \ref{fig:eq_noneq_comp} vidi se kako normalizacija histograma utječe na preciznost klasifikacije.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{raw/eq_noneq_comp.png}
+\caption{Preciznost klasifikacije u odnosu na veličinu skupa za učenje sa i bez normalizacije histograma.}
+\label{fig:eq_noneq_comp}
+\end{figure}
+
+\subsection{Prepoznavanje, zaključak}
+
 \chapter{Zaključak}
 Zaključak.
 

@@ -1,0 +1,15 @@
+This is BibTeX, Version 0.99dThe top-level auxiliary file: rv_report.aux
+The style file: unsrt.bst
+Database file #1: literatura.bib
+A bad cross reference---entry "conf/isda/ChandrappaR12"
+refers to entry "conf/isda/2012", which doesn't exist
+Warning--I didn't find a database entry for "conf/isda/2012"
+Name 1 in "Prabhu Utsav, and Keshav Seshadri" has a comma at the end for entry prabhu_utsav_facialrecog
+while executing---line 944 of file unsrt.bst
+Warning--empty journal in prabhu_utsav_facialrecog
+Warning--empty year in prabhu_utsav_facialrecog
+Warning--empty year in barr2014effectiveness
+Warning--empty booktitle in Viola01rapidobject
+Warning--empty journal in rahman_face_det_gender_svm
+Warning--empty year in rahman_face_det_gender_svm
+(There were 2 error messages)
