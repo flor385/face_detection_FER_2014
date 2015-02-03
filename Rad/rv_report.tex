@@ -465,13 +465,25 @@ U radu \citep{conf/isda/ChandrappaR12} normalizacija histograma ulazne slike kor
 
 \subsection{Prepoznavanje, zaključak}
 
+Iz prikazanih rezultata vidi se da je ICA metoda vrlo uspješna u prepoznavanju lica u različitim uvjetima snimanja. Preciznost od $97.6\%$ može se smatrati vrlo dobrim rezultatom s obzirom na uvjete prilikom snimanja (osvjetljenje pod različitim kutevima). Algoritam je osjetljiv na broj baznih slika osoba te se može primjetiti da dobru preciznost od oko $90\%$ i više postiže za n $\geq$ 6 baznih slika po čovjeku. Dakle, metoda je precizna ako ima dovoljno sličnu sliku promatranoj među baznim slikama. 
+
+Na preciznost značajno utječe i mjera sličnosti koju koristmo (euklidska ili kosinusna) te korak predprocesiranja.
+
 \chapter{Zaključak}
-Zaključak.
+
+U ovome radu opisane su dvije metode obrade slike. Detekcija lica ostvarena je metodom detekcije kože prema boji te usporedbom sa prosječnim licem, dok je prepoznavanje lica ostvareno korištenjem ICA značajki. U referentnom radu \citep{conf/isda/ChandrappaR12} dvije metode čine sustav za prepoznavanje ljudi sa grupnih slika, no zbog nedostatka odgovarajuće baze podataka u ovom su radu ta dva koraka evaluirana odvojeno. Metode su evaluirane na uobičajno korištenim bazama podataka te stoga predstavljaju relevantne podatke o uspješnosti postupaka. 
+
+Metoda korištena za detekciju lica pokazala se lošom u odnosu na druge uobičajno korištene postupke. Ona postiže preciznost od $35\%$ kod detekcije lica ako se uspješnom detekcijom smatra pronalazak najmanje $50\%$ površine lica. Najuspješniji detektori imaju preciznost od $65\%$ na istoj bazi podataka. Ako gledamo površinu preklapanja kao mjeru preciznosti, metoda opisana u ovom radu postiže preciznost od $14\%$, a najuspješniji detektori $45\%$.
+
+Prepoznavanje lica pomoću ICA značajki postiglo je puno bolje rezultate. Preciznost metode je $97.6\%$ na skupu za ispitivanje. Ova metoda pokazala se kao vrlo dobra dok god imamo dobar set referentnih slika. Metoda je ispitana na setu slika gdje su lica savršeno segmentirana te se postavlja pitanje kako bi radilo na licima dobivenim detekcijom.
+
+Sljedeći korak bio bi isprobati dane postupke jednu za drugom na setu grupnih slika. No, rezultati bi vjerojatno bili loši zbog loše preciznosti algoritma za detekciju.
 
 \bibliography{literatura}
 \bibliographystyle{unsrt}
 
 \chapter{Sažetak}
-Sažetak.
+
+U radu opisana su i evaluirana dva postupka obrade slike koja se mogu koristiti za prepoznavanje lica u grupnim scenama. Detekcija lica uz pomoć metode detekcije kože prema boji te usporedbom sa prosječnim licem i prepoznavanje lica korištenjem ICA značajki. Metode su detaljno opisane te evaluirane na FDDB i Yale bazama podataka.
 
 \end{document}
