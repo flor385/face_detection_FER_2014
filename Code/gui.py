@@ -80,6 +80,7 @@ class RvGui(tk.Frame):
   def classify(self):
     simils = self.recognition.get_similarities_for(self.pic.get())
     pos, sim, fold = max(simils, key = lambda x : x[1])
+    tkMessageBox.showinfo("Klasifikacija","Najsličnija osoba je: " + str(fold))
     self.new_window("Najsličnija slika", self.dir.get() + "/" + self.files[pos])
 
     
