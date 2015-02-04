@@ -59,7 +59,7 @@ class RvGui(tk.Frame):
             
     
   def learn(self):
-    self.recognition = RecognitionArh2(self.dir.get().decode('utf-8'))
+    self.recognition = RecognitionArh2(unicode(self.dir.get(),"utf-8"))
     self.buttonChooseImage['state'] = 'normal'
     tkMessageBox.showinfo("Učenje","Učenje klasifikatora završeno")
     
