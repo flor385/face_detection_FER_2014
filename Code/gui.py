@@ -73,7 +73,9 @@ class RvGui(tk.Frame):
       
 
   def classify(self):
-    self.recognition.get_similarities_for(self.pic.get())
+    simils = self.recognition.get_similarities_for(self.pic.get())
+    pos, sim = max(simils, key = lambda x : x[1])
+    tkMessageBox.showinfo("Klasifikacija", "Najsličnija osoba je: " + str(pos))
 
 if __name__=='__main__':
   root = tk.Tk()
