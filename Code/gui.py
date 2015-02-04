@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from os import listdir
+from os.path import isfile, join
 import Tkinter as tk, Tkconstants, tkFileDialog, tkMessageBox
 from Tkinter import *
+import Image, ImageTk
 from recognition import *
 
 class RvGui(tk.Frame):
@@ -52,6 +55,8 @@ class RvGui(tk.Frame):
 
   def askdirectory(self):
     self.dir.set(tkFileDialog.askdirectory(**self.dir_opt))
+    self.files = [ f for f in listdir(self.dir.get()) if isfile(join(self.dir.get(),f)) ]
+    
     if len(self.dir.get()) > 1:
       self.buttonLearn['state'] = 'normal'
     else:
@@ -75,7 +80,18 @@ class RvGui(tk.Frame):
   def classify(self):
     simils = self.recognition.get_similarities_for(self.pic.get())
     pos, sim, fold = max(simils, key = lambda x : x[1])
-    tkMessageBox.showinfo("Klasifikacija", "Najsličnija osoba je: " + str(pos))
+    self.new_window("Najsličnija slika", self.dir.get() + "/" + self.files[pos])
+
+    
+  def new_window(self, title, filename):
+    window = tk.Toplevel(self)
+    window.title("RV - " + title)
+    window.geometry('300x300+200+200')    
+    img = ImageTk.PhotoImage(Image.open(filename))
+    panel = Label(window, image = img)
+    panel.pack(side = "bottom", fill = "both", expand = "yes")
+    window.mainloop()
+    
 
 if __name__=='__main__':
   root = tk.Tk()
